@@ -1,0 +1,2274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="color-scheme" content="light dark">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Mrio</title>
+<link rel="icon" href="https://img.remit.ee/i/wBEEgBVHYCzO">
+<style>
+:root{
+--bg:#fff;--bg2:#f9f9f9;--bg3:#f0f0f0;--fg:#0d0d0d;--fg2:#6e6e6e;--fg3:#9b9b9b;
+--border:#e8e8e8;--hover:#f2f2f2;--user:#f4f4f4;--accent:#0d0d0d;--accent-fg:#fff;
+--code-bg:#f6f6f6;--code-fg:#0d0d0d;
+--shadow:0 2px 12px rgba(0,0,0,.06);
+--glass:rgba(255,255,255,.72);--glass2:rgba(255,255,255,.88);
+--border-soft:rgba(0,0,0,.06);
+--border-softer:rgba(0,0,0,.04);
+--accent-soft:rgba(13,13,13,.08);
+--accent-glow:rgba(13,13,13,.15);
+--hover-soft:rgba(0,0,0,.02);
+}
+body.dark{
+--bg:#1c1c1e;--bg2:#141416;--bg3:#2c2c2e;--fg:#f2f2f7;--fg2:#98989f;--fg3:#6c6c70;
+--border:#2c2c2e;--hover:#2c2c2e;--user:#2c2c2e;--accent:#f2f2f7;--accent-fg:#1c1c1e;
+--code-bg:#0d0d0d;--code-fg:#e6e6e6;
+--shadow:0 2px 12px rgba(0,0,0,.35);
+--glass:rgba(28,28,30,.72);--glass2:rgba(28,28,30,.88);
+--border-soft:rgba(255,255,255,.06);
+--border-softer:rgba(255,255,255,.04);
+--accent-soft:rgba(242,242,247,.08);
+--accent-glow:rgba(242,242,247,.15);
+--hover-soft:rgba(255,255,255,.03);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro SC","SF Pro Text","Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--fg);overflow:hidden;-webkit-font-smoothing:antialiased;transition:background .3s cubic-bezier(.4,0,.2,1),color .3s cubic-bezier(.4,0,.2,1)}
+#stage{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100%}
+button,input,textarea,select{font-family:inherit;color:inherit}
+.app{height:100%;display:flex;overflow:hidden;position:relative;z-index:1}
+
+/* ===== Startup ===== */
+.startup-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--glass2);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);transition:opacity .5s cubic-bezier(.4,0,.2,1),visibility .5s}
+.startup-overlay.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.startup-box{width:100%;max-width:440px;background:var(--bg);border:1px solid var(--border);border-radius:28px;padding:36px 28px 28px;box-shadow:0 32px 80px -20px rgba(0,0,0,.25);animation:pop .5s cubic-bezier(.22,1,.36,1) both;max-height:90vh;overflow-y:auto}
+.startup-box::-webkit-scrollbar{width:6px}
+.startup-box::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.startup-logo{width:72px;height:72px;border-radius:22px;overflow:hidden;margin:0 auto 16px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.startup-logo img{width:100%;height:100%;object-fit:cover;display:block}
+.startup-box h2{margin:0 0 6px;text-align:center;font-size:24px;font-weight:600;letter-spacing:-.5px}
+.startup-box .sub{text-align:center;color:var(--fg2);font-size:13.5px;margin:0 0 24px;line-height:1.5}
+.startup-field{margin-bottom:20px}
+.startup-field>label{display:block;font-size:12px;font-weight:600;color:var(--fg2);letter-spacing:.4px;margin-bottom:8px;text-transform:uppercase}
+.startup-field input[type=text]{width:100%;padding:13px 16px;border:1px solid var(--border);border-radius:14px;background:var(--bg2);font-size:15px;outline:none;transition:border-color .15s;color:var(--fg)}
+.startup-field input[type=text]:focus{border-color:var(--fg3)}
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.model-btn{background:var(--bg2);border:2px solid var(--border);border-radius:16px;padding:12px 6px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.2,.64,1);display:flex;flex-direction:column;align-items:center;gap:6px;color:inherit}
+.model-btn:hover{background:var(--hover)}
+.model-btn.is-active{border-color:var(--accent);background:var(--accent-soft)}
+.model-thumb{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#c8b0a0,#8a6a5a);display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.model-btn[data-model="model2"] .model-thumb{background:linear-gradient(135deg,#b0c8e0,#5a7a9a)}
+.model-btn[data-model="model3"] .model-thumb{background:linear-gradient(135deg,#e0c8b0,#9a7a5a)}
+.model-btn span{font-size:12px;color:var(--fg2);font-weight:500}
+.model-btn.is-active span{color:var(--fg)}
+.startup-file{margin-top:10px;display:block}
+.startup-file input{display:none}
+.startup-file .file-btn2{display:block;text-align:center;padding:11px 14px;border:1.5px dashed var(--border);border-radius:14px;font-size:12.5px;color:var(--fg2);cursor:pointer;transition:all .2s}
+.startup-file .file-btn2:hover{border-color:var(--fg3);color:var(--fg);background:var(--hover)}
+.startup-file-name{font-size:11.5px;color:var(--fg3);text-align:center;margin-top:6px;min-height:14px}
+.btn-start{width:100%;padding:14px;margin-top:12px;background:var(--accent);color:var(--accent-fg);border:none;border-radius:16px;font-size:15px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:transform .15s,opacity .2s}
+.btn-start:hover{opacity:.9}
+.btn-start:active{transform:scale(.98)}
+.btn-start:disabled{opacity:.5;cursor:wait}
+.startup-status{font-size:12px;color:var(--fg3);text-align:center;margin-top:10px;min-height:16px}
+
+/* ===== Sidebar ===== */
+.sidebar{width:264px;flex:0 0 264px;background:var(--glass);backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);border-right:1px solid var(--border-soft);display:flex;flex-direction:column;padding:12px;gap:10px;transition:transform .4s cubic-bezier(.32,.72,0,1);z-index:30}
+.sidebar-head{display:flex;align-items:center;gap:10px;padding:6px 8px 10px}
+.logo{width:32px;height:32px;border-radius:9px;object-fit:cover;background:var(--bg3)}
+.logo-name{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.new-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:1px solid var(--border);background:var(--bg);border-radius:12px;font-size:13.5px;font-weight:500;cursor:pointer;transition:background .18s,border-color .18s,transform .12s;color:var(--fg)}
+.new-btn:hover{background:var(--hover)}
+.new-btn:active{transform:scale(.98)}
+.new-btn svg{width:16px;height:16px;flex:0 0 16px;opacity:.7}
+.chat-list{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:2px;min-height:0;padding:2px 0}
+.chat-list::-webkit-scrollbar{width:6px}
+.chat-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.chat-list::-webkit-scrollbar-track{background:transparent}
+.chat-item{display:flex;align-items:center;gap:6px;padding:9px 11px;border-radius:10px;font-size:13.5px;color:var(--fg2);cursor:pointer;transition:background .15s,color .15s;user-select:none;-webkit-user-select:none}
+.chat-item:hover{background:var(--hover);color:var(--fg)}
+.chat-item.active{background:var(--hover);color:var(--fg);font-weight:500}
+.ci-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci-del{opacity:0;border:none;background:transparent;cursor:pointer;color:var(--fg3);font-size:15px;line-height:1;padding:2px 5px;border-radius:6px;transition:opacity .15s,background .15s,color .15s}
+.chat-item:hover .ci-del{opacity:1}
+.ci-del:hover{background:var(--bg3);color:var(--fg)}
+.sidebar-foot{padding-top:6px;border-top:1px solid var(--border-soft)}
+.foot-btn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:none;background:transparent;border-radius:10px;font-size:13.5px;color:var(--fg2);cursor:pointer;transition:background .15s,color .15s}
+.foot-btn:hover{background:var(--hover);color:var(--fg)}
+.foot-btn svg{width:16px;height:16px;opacity:.7}
+
+/* ===== Main ===== */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:transparent;position:relative}
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border-soft);background:var(--glass);backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);position:relative;z-index:10;flex-shrink:0}
+.topbar-title{font-size:14.5px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.2px}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.icon-btn{width:34px;height:34px;flex:0 0 34px;border-radius:10px;border:1px solid var(--border);background:var(--bg);display:grid;place-items:center;cursor:pointer;color:var(--fg2);transition:background .15s,color .15s,border-color .15s,transform .12s}
+.icon-btn:hover{background:var(--hover);color:var(--fg)}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn svg{width:16px;height:16px}
+.icon-btn.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.only-mobile{display:none}
+.model-sel{border:1px solid var(--border);background:var(--bg);border-radius:10px;padding:7px 26px 7px 10px;font-size:12.5px;color:var(--fg2);cursor:pointer;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'><path d='M2.5 4.5L6 8l3.5-3.5' stroke='%23888' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 9px center}
+.model-sel:hover{background-color:var(--hover)}
+
+/* ===== Chat area ===== */
+.chat{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 16px;position:relative;z-index:5;-webkit-overflow-scrolling:touch}
+.chat::-webkit-scrollbar{width:8px}
+.chat::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.chat::-webkit-scrollbar-track{background:transparent}
+.chat-inner{max-width:640px;margin:0 auto 0 0;display:flex;flex-direction:column;padding:20px 0 8px}
+@media (max-width:1024px){.chat-inner{max-width:100%}}
+.welcome{margin:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;padding:36px 24px;max-width:520px;animation:rise .55s cubic-bezier(.22,1,.36,1) both;background:var(--glass2);border-radius:24px;backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);border:1px solid var(--border-soft);box-shadow:var(--shadow)}
+.welcome-logo{width:64px;height:64px;border-radius:18px;object-fit:cover;background:var(--bg3)}
+.welcome h2{margin:6px 0 0;font-size:22px;font-weight:600;letter-spacing:-.5px}
+.welcome p{margin:0 0 14px;font-size:13.5px;color:var(--fg2);line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chips button{border:1px solid var(--border);background:var(--bg);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--fg2);cursor:pointer;transition:background .18s,color .18s,border-color .18s,transform .12s;text-align:left}
+.chips button:hover{background:var(--hover);color:var(--fg)}
+.chips button:active{transform:scale(.97)}
+.msg{display:flex;gap:12px;padding:14px 0;animation:rise .32s cubic-bezier(.22,1,.36,1) both;position:relative}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg.me{flex-direction:row-reverse}
+.avatar{width:32px;height:32px;flex:0 0 32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--accent-fg);background:var(--accent);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar.me{background:var(--bg3);color:var(--fg2)}
+.bubble{max-width:calc(100% - 62px);font-size:14.5px;line-height:1.72;word-break:break-word;overflow-wrap:anywhere}
+.msg.mrio .bubble{flex:1;min-width:0;background:var(--glass2);backdrop-filter:saturate(160%) blur(20px);-webkit-backdrop-filter:saturate(160%) blur(20px);padding:12px 16px;border-radius:18px;border-top-left-radius:6px;max-width:min(540px,84%);border:1px solid var(--border-soft)}
+.msg.me .bubble{background:var(--user);backdrop-filter:saturate(160%) blur(20px);-webkit-backdrop-filter:saturate(160%) blur(20px);padding:12px 16px;border-radius:18px;border-top-right-radius:6px;max-width:min(500px,78%)}
+.bubble .content>*:first-child{margin-top:0}
+.bubble .content>*:last-child{margin-bottom:0}
+.bubble p{margin:.55em 0}
+.bubble h1,.bubble h2,.bubble h3,.bubble h4{margin:.85em 0 .4em;line-height:1.35;letter-spacing:-.3px}
+.bubble h1{font-size:1.3em}
+.bubble h2{font-size:1.18em}
+.bubble h3{font-size:1.06em}
+.bubble ul,.bubble ol{margin:.5em 0;padding-left:1.5em}
+.bubble li{margin:.28em 0}
+.bubble blockquote{margin:.6em 0;padding:.4em .9em;border-left:3px solid var(--border);color:var(--fg2)}
+.bubble hr{border:none;height:1px;background:var(--border);margin:1em 0}
+.bubble a{color:var(--fg);text-decoration:underline;text-underline-offset:3px}
+.bubble strong{font-weight:600}
+.bubble code.inline{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.86em;padding:2px 6px;border-radius:6px;background:var(--code-bg);color:var(--code-fg);border:1px solid var(--border)}
+.bubble pre.code-block{margin:.7em 0;border-radius:12px;overflow:hidden;background:var(--code-bg);border:1px solid var(--border)}
+.bubble pre.code-block .code-head{padding:7px 13px;font-size:11px;letter-spacing:.4px;text-transform:uppercase;color:var(--fg3);border-bottom:1px solid var(--border);font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.bubble pre.code-block code{display:block;padding:13px 15px;overflow-x:auto;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12.8px;line-height:1.65;color:var(--code-fg);white-space:pre}
+.msg-img{display:block;max-width:100%;max-height:420px;border-radius:16px;margin:8px 0 4px;box-shadow:var(--shadow);border:1px solid var(--border);cursor:zoom-in}
+.typing{display:inline-flex;gap:4px;align-items:center;height:20px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--fg3);animation:blink 1.3s infinite ease-in-out}
+.typing i:nth-child(2){animation-delay:.17s}
+.typing i:nth-child(3){animation-delay:.34s}
+@keyframes blink{0%,60%,100%{opacity:.28;transform:translateY(0) scale(.8)}30%{opacity:1;transform:translateY(-3px) scale(1)}}
+.bubble details.reasoning{margin:0 0 .7em;padding:.55em .85em;border-radius:10px;background:var(--bg2);border:1px solid var(--border);font-size:.88em;color:var(--fg2)}
+.bubble details.reasoning summary{cursor:pointer;font-weight:500;list-style:none;outline:none;color:var(--fg3)}
+.bubble details.reasoning summary::-webkit-details-marker{display:none}
+.bubble details.reasoning>div{margin-top:.55em;padding-top:.55em;border-top:1px dashed var(--border);line-height:1.65}
+.msg-actions{display:flex;gap:6px;margin-top:8px;opacity:0;transition:opacity .2s;flex-wrap:wrap}
+.msg.mrio:hover .msg-actions,.msg.mrio .msg-actions.pinned{opacity:1}
+@media (pointer:coarse){.msg-actions{opacity:1}}
+.msg-action{background:transparent;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11.5px;color:var(--fg2);cursor:pointer;transition:background .15s,color .15s}
+.msg-action:hover{background:var(--hover);color:var(--fg)}
+.draw-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--fg3);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:2px 7px}
+
+/* ===== Composer ===== */
+.composer-wrap{padding:8px 16px 14px;background:var(--glass);backdrop-filter:saturate(180%) blur(30px);-webkit-backdrop-filter:saturate(180%) blur(30px);border-top:1px solid var(--border-soft);flex-shrink:0}
+.composer-inner{max-width:640px;margin:0 auto 0 0;width:100%}
+@media (max-width:1024px){.composer-inner{max-width:100%}}
+.preview{display:flex;gap:8px;flex-wrap:wrap;padding:0 4px 8px}
+.preview:empty{display:none}
+.preview-item{position:relative;width:64px;height:64px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--bg2)}
+.preview-item img{width:100%;height:100%;object-fit:cover;display:block}
+.preview-item button{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,.65);color:#fff;font-size:12px;line-height:1;display:grid;place-items:center}
+.composer{display:flex;align-items:flex-end;gap:6px;padding:6px 6px 6px 8px;border:1px solid var(--border);border-radius:22px;background:var(--bg);transition:border-color .18s}
+.composer:focus-within{border-color:var(--fg3)}
+.composer textarea{flex:1;border:none;outline:none;background:transparent;resize:none;font-size:14.5px;line-height:1.6;color:var(--fg);max-height:180px;padding:8px 6px;min-height:36px}
+.composer textarea::placeholder{color:var(--fg3)}
+.send-btn{width:34px;height:34px;flex:0 0 34px;border-radius:50%;border:none;cursor:pointer;display:grid;place-items:center;color:var(--accent-fg);background:var(--accent);transition:transform .2s cubic-bezier(.34,1.5,.64,1),opacity .2s}
+.send-btn:hover{transform:scale(1.06)}
+.send-btn:active{transform:scale(.92)}
+.send-btn.stop{background:#ff3b30;color:#fff}
+.send-btn svg{width:16px;height:16px}
+.hint{text-align:center;font-size:11px;color:var(--fg3);margin-top:8px;letter-spacing:.2px}
+
+/* ===== Modal ===== */
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:400;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-mask.show{display:flex;animation:fade .25s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{width:100%;max-width:520px;background:var(--bg);border:1px solid var(--border);border-radius:20px;box-shadow:0 32px 80px -16px rgba(0,0,0,.35);overflow:hidden;animation:pop .35s cubic-bezier(.22,1,.36,1) both;max-height:88vh;display:flex;flex-direction:column}
+@keyframes pop{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;flex-shrink:0}
+.modal-head h2{margin:0;font-size:17px;font-weight:600;letter-spacing:-.3px}
+.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:var(--bg3);cursor:pointer;color:var(--fg2);font-size:18px;line-height:1;display:grid;place-items:center;transition:background .15s,color .15s}
+.modal-close:hover{background:var(--hover);color:var(--fg)}
+.modal-body{padding:0 20px 8px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;-webkit-overflow-scrolling:touch}
+.modal-body::-webkit-scrollbar{width:6px}
+.modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field>label{font-size:12.5px;font-weight:600;color:var(--fg2);letter-spacing:.2px}
+.field .desc{font-size:11.5px;color:var(--fg3);line-height:1.5}
+.field input[type=text],.field input[type=password],.field select{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);font-size:13.5px;outline:none;-webkit-appearance:none;appearance:none;color:var(--fg)}
+.field input:focus,.field select:focus{border-color:var(--fg3)}
+.field select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'><path d='M2.5 4.5L6 8l3.5-3.5' stroke='%23888' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;cursor:pointer}
+.key-status{font-size:12.5px;color:var(--fg2);padding:11px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.key-status b{color:var(--fg);font-weight:600}
+.btn{padding:10px 18px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:13.5px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s,transform .12s}
+.btn:hover{background:var(--hover)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.primary:hover{opacity:.88}
+.btn.danger{color:#ff3b30;border-color:#ff3b30}
+.btn.danger:hover{background:rgba(255,59,48,.08)}
+.btn.sm{padding:7px 13px;font-size:12.5px;border-radius:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border-soft);gap:12px}
+.switch-row:last-child{border-bottom:none}
+.switch-label{font-size:13.5px;color:var(--fg)}
+.switch-desc{font-size:11.5px;color:var(--fg3);margin-top:3px}
+.switch{position:relative;width:44px;height:26px;flex:0 0 44px;border-radius:99px;background:var(--bg3);cursor:pointer;transition:background .25s cubic-bezier(.4,0,.2,1)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.switch.on{background:#34c759}
+.switch.on::after{transform:translateX(18px)}
+.modal-foot{padding:14px 20px 18px;display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+
+/* ===== Toast ===== */
+.toast{position:fixed;left:50%;bottom:40px;transform:translate(-50%,24px);z-index:600;padding:12px 20px;border-radius:14px;font-size:13.5px;font-weight:500;color:var(--accent-fg);background:var(--accent);box-shadow:0 16px 40px -8px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:all .4s cubic-bezier(.22,1,.36,1);max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ===== 斗地主 全屏横屏 ===== */
+.game-mask{position:fixed;inset:0;z-index:150;display:none;flex-direction:column;pointer-events:none}
+.game-mask.show{display:flex;animation:fade .35s ease both}
+.game-mask>*{pointer-events:auto}
+.game-topbar{position:relative;z-index:3;display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(12px + env(safe-area-inset-top,0));background:linear-gradient(180deg,rgba(0,0,0,.6),rgba(0,0,0,.28) 70%,transparent);color:#fff;flex-shrink:0}
+.game-topbar .gt-title{flex:1;font-size:15px;font-weight:600;letter-spacing:.2px;text-shadow:0 1px 4px rgba(0,0,0,.55)}
+.game-topbar .btn{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.24)}
+.game-topbar .btn:hover{background:rgba(255,255,255,.26)}
+.game-topbar .icon-btn{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.24)}
+.game-topbar .icon-btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.game-spacer{flex:1;pointer-events:none;min-height:100px}
+.game-bottom{position:relative;z-index:3;display:flex;flex-direction:column;gap:8px;padding:10px 14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0));background:linear-gradient(0deg,rgba(0,0,0,.82) 35%,rgba(0,0,0,.55) 75%,transparent);color:#fff;max-height:58vh;overflow-y:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.game-bottom::-webkit-scrollbar{width:6px}
+.game-bottom::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:99px}
+.ginfo{padding:8px 14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:12px;font-size:13px;font-weight:500}
+.glog{padding:8px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;font-size:11.5px;color:rgba(255,255,255,.85);white-space:pre-wrap;line-height:1.5;max-height:60px;overflow-y:auto}
+.gtalk{padding:10px 14px;background:rgba(255,180,80,.14);border:1px solid rgba(255,180,80,.3);border-radius:12px;font-size:12.5px;color:#ffd89a;line-height:1.5;min-height:22px;display:flex;align-items:center;gap:8px}
+.gtalk .who{font-weight:700;color:#ffb347;flex-shrink:0}
+.gplayers-row{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px;align-items:stretch}
+@media (max-width:600px){.gplayers-row{grid-template-columns:1fr 1.2fr 1fr}}
+.gplayer{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;transition:border-color .3s,box-shadow .3s}
+.gplayer.is-turn{border-color:#0a84ff;box-shadow:0 0 0 2px rgba(10,132,255,.35)}
+.gp-head{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:500;gap:6px}
+.gp-head .tag{color:#ffb347;font-weight:700;margin-left:4px;font-size:11px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.gp-head .cnt{color:rgba(255,255,255,.85);font-size:11.5px;font-weight:600;background:rgba(0,0,0,.32);padding:3px 10px;border-radius:20px;min-width:44px;text-align:center}
+.gp-head .cnt b{color:#fff;font-weight:700;margin-right:1px}
+.gdesk{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:8px 12px;min-height:76px;display:flex;flex-direction:column;justify-content:center}
+.gdesk .lbl{color:rgba(255,255,255,.6);font-size:11px;margin-right:6px}
+.gdesk .dcards{display:flex;flex-wrap:wrap;gap:0;margin-top:5px;min-height:30px;align-items:center}
+.card{display:inline-flex;align-items:center;justify-content:center;width:38px;height:54px;background:#fafafa;color:#1a1a1a;border:1px solid rgba(0,0,0,.12);border-radius:7px;font-weight:700;font-size:12.5px;cursor:pointer;user-select:none;-webkit-user-select:none;margin:2px;transition:transform .18s cubic-bezier(.34,1.5,.64,1),background .18s,box-shadow .18s;flex:0 0 auto;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.card.red{color:#d22}
+.card.selected{background:#0a84ff;color:#fff!important;transform:translateY(-10px);border-color:#0a84ff;box-shadow:0 8px 18px rgba(10,132,255,.5)}
+.gctrl{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.gctrl .btn{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.22)}
+.gctrl .btn:hover{background:rgba(255,255,255,.28)}
+.gctrl .btn.primary{background:#0a84ff;border-color:#0a84ff;color:#fff}
+.gctrl .btn.primary:hover{background:#0071e3;opacity:1}
+.gctrl .btn.danger{background:rgba(255,59,48,.85);border-color:rgba(255,59,48,.9);color:#fff}
+.gctrl .btn.danger:hover{background:#ff3b30}
+.gctrl .btn:disabled{opacity:.35;cursor:not-allowed}
+@media (max-width:600px){
+.card{width:30px;height:43px;font-size:10.5px;margin:1.5px}
+.game-bottom{max-height:62vh;padding:8px 10px}
+.ginfo{font-size:12px;padding:6px 11px}
+.glog{font-size:10.5px;padding:6px 11px}
+.gtalk{font-size:11.5px;padding:8px 11px}
+.gp-head{font-size:11.5px}
+.gplayer{padding:8px 10px}
+}
+@media (orientation:landscape) and (max-height:520px){
+.game-bottom{max-height:68vh;padding:8px 12px}
+.game-topbar{padding:6px 12px}
+.ginfo,.glog{padding:5px 11px;font-size:11px}
+.gtalk{padding:6px 11px;font-size:11px}
+.gplayer{padding:6px 9px}
+.card{width:26px;height:37px;font-size:10px;margin:1px}
+.game-spacer{min-height:70px}
+}
+
+/* ===== 斗地主结算 ===== */
+.ddz-win{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:20px}
+.ddz-win.show{display:flex;animation:fade .25s both}
+.ddz-win-box{background:var(--bg);border:1px solid var(--border);border-radius:22px;padding:30px 36px;text-align:center;animation:pop .35s cubic-bezier(.22,1,.36,1) both;min-width:280px;box-shadow:0 32px 80px -16px rgba(0,0,0,.4)}
+.ddz-win-box h3{margin:0 0 12px;font-size:20px}
+.ddz-win-box p{margin:0 0 20px;font-size:13.5px;color:var(--fg2)}
+
+/* ===== 移动端 ===== */
+@media (max-width:880px){
+.app{position:relative}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;flex:0 0 280px;transform:translateX(-104%);box-shadow:0 0 60px rgba(0,0,0,.22)}
+.sidebar.open{transform:none}
+.only-mobile{display:grid}
+.chat{padding:0 12px}
+.chat-inner{padding:14px 0 6px}
+.composer-wrap{padding:6px 12px calc(12px + env(safe-area-inset-bottom,0))}
+.bubble{font-size:14px}
+.msg.me .bubble{max-width:82%}
+.msg.mrio .bubble{max-width:88%}
+.hint{display:none}
+.welcome{padding:26px 18px}
+.welcome h2{font-size:19px}
+}
+@media (max-width:380px){
+.model-sel{max-width:96px;font-size:11.5px}
+.card{width:28px;height:40px;font-size:10px}
+}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div class="app">
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-head"><img class="logo" src="https://img.remit.ee/i/wBEEgBVHYCzO" alt="Mrio"><span class="logo-name">Mrio</span></div>
+<button class="new-btn" id="newChat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>新对话</span></button>
+<div class="chat-list" id="chatList"></div>
+<div class="sidebar-foot"><button class="foot-btn" id="settingsBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>设置</span></button></div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+<button class="icon-btn only-mobile" id="menuBtn" aria-label="菜单"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+<div class="topbar-title" id="topTitle">Mrio</div>
+<div class="topbar-right">
+<button class="icon-btn" id="gameBtn" title="和 Mrio 打斗地主"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="10" height="14" rx="2"/><rect x="11" y="7" width="10" height="14" rx="2"/></svg></button>
+<button class="icon-btn" id="voiceToggle" title="语音朗读开关"></button>
+<select class="model-sel" id="modelSelect"><option value="glm-4-flash">GLM-4-Flash</option><option value="glm-4-air">GLM-4-Air</option><option value="glm-4-plus">GLM-4-Plus</option><option value="glm-4v-flash">GLM-4V 识图</option><option value="glm-z1-flash">GLM-Z1 深思</option></select>
+<button class="icon-btn" id="themeBtn" title="切换主题"></button>
+</div>
+</header>
+<div class="chat" id="chat"><div class="chat-inner" id="chatInner"></div></div>
+<div class="composer-wrap"><div class="composer-inner">
+<div class="preview" id="preview"></div>
+<div class="composer">
+<button class="icon-btn" id="uploadBtn" title="上传图片" style="border:none;background:transparent"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="8.6" cy="10" r="1.6"/><path d="M3.6 17.2l4.6-4.2a2 2 0 012.7 0l6.2 5.6"/></svg></button>
+<textarea id="input" rows="1" placeholder="给 Mrio 发消息…"></textarea>
+<button class="send-btn" id="sendBtn" aria-label="发送"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5.5L18.5 12 12 18.5"/></svg></button>
+</div>
+<div class="hint">Enter 发送 · Shift+Enter 换行 · 说「画一只猫」画图 · 说「斗地主」开局</div>
+<input type="file" id="fileInput" accept="image/*" hidden>
+</div></div>
+</main>
+</div>
+
+<!-- ===== 启动选择界面 ===== -->
+<div class="startup-overlay" id="startupOverlay">
+<div class="startup-box">
+<div class="startup-logo"><img src="https://img.remit.ee/i/wBEEgBVHYCzO" alt="Mrio"></div>
+<h2>初次见面</h2>
+<p class="sub">选择你的虚拟人，起个名字，就开始吧</p>
+<div class="startup-field">
+<label>名字</label>
+<input type="text" id="nameInput" value="Mrio" maxlength="12" placeholder="给TA起个名字">
+</div>
+<div class="startup-field">
+<label>虚拟人形象</label>
+<div class="model-grid" id="modelGrid">
+<button class="model-btn is-active" data-model="model1"><div class="model-thumb">A</div><span>模型 A</span></button>
+<button class="model-btn" data-model="model2"><div class="model-thumb">B</div><span>模型 B</span></button>
+<button class="model-btn" data-model="model3"><div class="model-thumb">C</div><span>模型 C</span></button>
+</div>
+<label class="startup-file">
+<span class="file-btn2">或 导入本地 .vrm / .glb 文件</span>
+<input type="file" id="startupFile" accept=".vrm,.glb">
+</label>
+<div class="startup-file-name" id="startupFileName"></div>
+</div>
+<button class="btn-start" id="btnStart">开始</button>
+<div class="startup-status" id="startupStatus"></div>
+</div>
+</div>
+
+<!-- ===== 斗地主 全屏横屏覆盖层 ===== -->
+<div class="game-mask" id="gameMask">
+<div class="game-topbar">
+<div class="gt-title">🃏 斗地主 · 与 Mrio 对战</div>
+<button class="btn sm" id="ddzDiff">AI：普通</button>
+<button class="icon-btn" id="ddzClose" title="关闭">×</button>
+</div>
+<div class="game-spacer"></div>
+<div class="game-bottom">
+<div class="ginfo" id="ddzInfo">点击【发牌抢地主】开局</div>
+<div class="gtalk" id="ddzTalk"><span class="who">Mrio：</span><span id="ddzTalkText">准备好了吗？我可不手下留情哦～</span></div>
+<div class="glog" id="ddzLog">AI 思考日志：等待开局</div>
+<div class="gplayers-row">
+<div class="gplayer" id="ai1Box">
+<div class="gp-head"><span>AI-A<span class="tag" id="ai1Tag"></span></span><span class="cnt"><b id="ai1Count">0</b> 张</span></div>
+</div>
+<div class="gdesk">
+<div><span class="lbl">桌面出牌</span><span id="lastType" style="color:rgba(255,255,255,.9);font-size:11px">无</span></div>
+<div class="dcards" id="deskCards"></div>
+</div>
+<div class="gplayer" id="ai2Box">
+<div class="gp-head"><span>AI-B<span class="tag" id="ai2Tag"></span></span><span class="cnt"><b id="ai2Count">0</b> 张</span></div>
+</div>
+</div>
+<div class="gplayer" id="userBox">
+<div class="gp-head"><span>你<span class="tag" id="userTag"></span></span><span class="cnt"><b id="userCount">0</b> 张</span></div>
+<div class="dcards" id="userCards" style="margin-top:8px"></div>
+<div class="gctrl">
+<button class="btn" id="dealBtn">发牌抢地主</button>
+<button class="btn primary" id="playBtn" disabled>出牌</button>
+<button class="btn danger" id="passBtn" disabled>过</button>
+</div>
+</div>
+</div>
+</div>
+
+<div class="ddz-win" id="ddzWin"><div class="ddz-win-box"><h3 id="ddzWinTitle"></h3><p id="ddzWinText"></p><button class="btn primary" id="ddzWinBtn">确定</button></div></div>
+
+<!-- ===== 设置 ===== -->
+<div class="modal-mask" id="modalMask">
+<div class="modal">
+<div class="modal-head"><h2>设置</h2><button class="modal-close" id="modalClose">×</button></div>
+<div class="modal-body">
+<div class="field"><label>智谱 API 密钥</label>
+<div class="key-status"><span>已配置 <b id="keyCount">0</b> 个密钥</span><span style="color:var(--fg3);font-size:11px;">不会在页面显示</span></div>
+<div class="row" style="margin-top:4px;"><input type="password" id="newKeyInput" placeholder="粘贴新密钥（添加后即隐藏）" autocomplete="off"></div>
+<div class="row"><button class="btn sm" id="addKeyBtn">添加密钥</button><button class="btn sm danger" id="clearKeysBtn">清空密钥</button><button class="btn sm" id="resetKeysBtn">恢复默认</button></div>
+<div class="desc">多把密钥会轮流调用，某一把失败时自动切换到下一把。</div></div>
+<div class="field"><label>画图设置</label>
+<div class="switch-row"><div><div class="switch-label">图片尺寸</div><div class="switch-desc">生成图片的分辨率</div></div>
+<select id="imgSizeSelect" style="width:auto;min-width:130px;padding:8px 26px 8px 12px;"><option value="1024x1024">1024 × 1024</option><option value="768x768">768 × 768</option><option value="512x512">512 × 512</option><option value="1024x768">1024 × 768</option><option value="768x1024">768 × 1024</option><option value="1280x720">1280 × 720</option><option value="720x1280">720 × 1280</option></select></div>
+<div class="switch-row"><div><div class="switch-label">AI 扩写提示词</div><div class="switch-desc">画图前用 AI 把简短描述扩写成详细提示词</div></div><div class="switch" id="expandSwitch"></div></div>
+<div class="switch-row"><div><div class="switch-label">翻译成英文</div><div class="switch-desc">画图前把提示词翻译成英文</div></div><div class="switch" id="translateSwitch"></div></div>
+<div class="switch-row"><div><div class="switch-label">画图模型</div><div class="switch-desc">不同模型风格差异较大</div></div>
+<select id="imgModelSelect" style="width:auto;min-width:130px;padding:8px 26px 8px 12px;"><option value="flux">flux（推荐）</option><option value="flux-anime">flux-anime（动漫）</option><option value="sdxl">sdxl</option></select></div></div>
+<div class="field"><label>语音朗读</label>
+<div class="switch-row"><div><div class="switch-label">朗读模式</div><div class="switch-desc">AI 回复后自动朗读</div></div>
+<select id="voiceModeSelect" style="width:auto;min-width:150px;padding:8px 26px 8px 12px;"><option value="off">关闭</option><option value="system">浏览器语音（Safari/系统）</option><option value="ai">AI 语音 API</option></select></div>
+<div class="switch-row" id="systemVoiceRow"><div><div class="switch-label">系统音色</div><div class="switch-desc">从系统/浏览器提供的音色中选择</div></div></div>
+<select id="systemVoiceSelect" style="width:100%;padding:11px 30px 11px 13px;border:1px solid var(--border);border-radius:12px;background:var(--bg2);font-size:13.5px;outline:none;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'><path d='M2.5 4.5L6 8l3.5-3.5' stroke='%23888' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer;"><option value="">默认音色</option></select>
+<div class="row"><button class="btn sm" id="testVoiceBtn">试听一句</button></div></div>
+<div class="field"><label>虚拟人</label>
+<div class="switch-row"><div><div class="switch-label">视线跟随</div><div class="switch-desc">眼睛跟随鼠标</div></div><div class="switch" id="gazeSwitch"></div></div>
+<div class="switch-row"><div><div class="switch-label">自动眨眼</div><div class="switch-desc">自然眨眼与呼吸</div></div><div class="switch" id="blinkSwitch"></div></div>
+<div class="row"><button class="btn sm" id="actGreet">挥手</button><button class="btn sm" id="actAkimbo">叉腰</button><button class="btn sm" id="actNod">点头</button><button class="btn sm" id="actShake">摇头</button><button class="btn sm" id="actThanks">合十</button><button class="btn sm" id="actStretch">伸展</button></div>
+<div class="row"><button class="btn sm" id="exprHappy">开心</button><button class="btn sm" id="exprShy">害羞</button><button class="btn sm" id="exprSad">悲伤</button><button class="btn sm" id="exprAngry">生气</button><button class="btn sm" id="exprSurprised">惊讶</button><button class="btn sm" id="exprNeutral">平静</button></div>
+<div class="row"><button class="btn sm" id="outfitDefault">默认</button><button class="btn sm" id="outfitCasual">休闲</button><button class="btn sm" id="outfitElegant">优雅</button><button class="btn sm" id="outfitCyber">赛博</button><button class="btn sm" id="outfitDark">暗黑</button></div></div>
+<div class="field"><label>模型导入</label>
+<div class="row"><label class="btn sm" style="cursor:pointer">导入 .vrm / .glb<input type="file" id="fileVrm" accept=".vrm,.glb" hidden></label></div>
+<div class="desc">本地模型不会上传，直接在你的浏览器中渲染。</div></div>
+<div class="field"><label>外观</label><div class="row"><button class="btn" id="themeBtn2">切换深色 / 浅色</button></div></div>
+<div class="field"><label>数据管理</label><div class="row"><button class="btn danger" id="clearBtn">清除全部缓存</button></div><div class="desc">清除后会删除所有对话记录、自定义密钥与设置。</div></div>
+</div>
+<div class="modal-foot"><button class="btn" id="cancelBtn">取消</button><button class="btn primary" id="saveBtn">保存</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/","@pixiv/three-vrm":"https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.0.0/lib/three-vrm.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {VRMLoaderPlugin,VRMUtils} from '@pixiv/three-vrm';
+
+/* ================= 通用工具 ================= */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.prototype.slice.call((r||document).querySelectorAll(s));
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(m,ms){const t=$('#toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),ms||2400);}
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const easeInOutCubic=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const zero=()=>({x:0,y:0,z:0});
+const _q1=new THREE.Quaternion(),_q2=new THREE.Quaternion(),_e=new THREE.Euler(),_v=new THREE.Vector3();
+
+/* ================= 虚拟人数据 ================= */
+const PRESET_MODELS={
+  model1:{url:'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_B.vrm'},
+  model2:{url:'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_A.vrm'},
+  model3:{url:'https://cdn.jsdelivr.net/gh/madjin/vrm-samples@master/vroid/stable/AvatarSample_C.vrm'}
+};
+const BONE_DEFS=[{name:'head'},{name:'neck'},{name:'upperChest'},{name:'chest'},{name:'spine'},{name:'hips'},{name:'leftShoulder'},{name:'leftUpperArm'},{name:'leftLowerArm'},{name:'leftHand'},{name:'rightShoulder'},{name:'rightUpperArm'},{name:'rightLowerArm'},{name:'rightHand'},{name:'leftUpperLeg'},{name:'leftLowerLeg'},{name:'leftFoot'},{name:'rightUpperLeg'},{name:'rightLowerLeg'},{name:'rightFoot'}];
+const BONE_ORDER=['hips','spine','chest','upperChest','neck','head','leftShoulder','leftUpperArm','leftLowerArm','leftHand','rightShoulder','rightUpperArm','rightLowerArm','rightHand','leftUpperLeg','leftLowerLeg','leftFoot','rightUpperLeg','rightLowerLeg','rightFoot'];
+const GLB_BONE_ALIASES={hips:['hips'],spine:['spine'],chest:['spine1'],upperChest:['spine2'],neck:['neck'],head:['head'],leftShoulder:['leftshoulder'],leftUpperArm:['leftarm'],leftLowerArm:['leftforearm'],leftHand:['lefthand'],rightShoulder:['rightshoulder'],rightUpperArm:['rightarm'],rightLowerArm:['rightforearm'],rightHand:['righthand'],leftUpperLeg:['leftupleg'],leftLowerLeg:['leftleg'],leftFoot:['leftfoot'],rightUpperLeg:['rightupleg'],rightLowerLeg:['rightleg'],rightFoot:['rightfoot']};
+const ARKIT_EXPRESSIONS={blink:[['eyeBlinkLeft',1],['eyeBlinkRight',1]],blinkLeft:[['eyeBlinkLeft',1]],blinkRight:[['eyeBlinkRight',1]],happy:[['mouthSmileLeft',.85],['mouthSmileRight',.85],['cheekSquintLeft',.4],['cheekSquintRight',.4],['eyeSquintLeft',.3],['eyeSquintRight',.3]],relaxed:[['eyeBlinkLeft',.35],['eyeBlinkRight',.35],['mouthSmileLeft',.4],['mouthSmileRight',.4]],angry:[['browDownLeft',1],['browDownRight',1],['noseSneerLeft',.4],['noseSneerRight',.4],['mouthFrownLeft',.35],['mouthFrownRight',.35]],sad:[['browInnerUp',.9],['mouthFrownLeft',.7],['mouthFrownRight',.7],['eyeSquintLeft',.2],['eyeSquintRight',.2]],surprised:[['browInnerUp',.8],['browOuterUpLeft',.7],['browOuterUpRight',.7],['eyeWideLeft',.9],['eyeWideRight',.9],['jawOpen',.3]],shy:[['mouthSmileLeft',.3],['mouthSmileRight',.3],['cheekSquintLeft',.2],['cheekSquintRight',.2],['eyeBlinkLeft',.5],['eyeBlinkRight',.5]]};
+const DEFAULT_POSE={leftUpperArm:{x:0,y:0,z:-1.15},rightUpperArm:{x:0,y:0,z:1.15},leftLowerArm:{x:0,y:-.25,z:-.06},rightLowerArm:{x:0,y:.25,z:.06},leftHand:{x:0,y:0,z:-.1},rightHand:{x:0,y:0,z:.1},leftShoulder:{x:0,y:0,z:-.06},rightShoulder:{x:0,y:0,z:.06}};
+const POSE_PRESETS={natural:Object.assign({},DEFAULT_POSE),greet:Object.assign({},DEFAULT_POSE,{rightUpperArm:{x:0,y:-.25,z:-.85},rightLowerArm:{x:0,y:.35,z:-.55},rightHand:{x:0,y:0,z:-.2},head:{x:0,y:.12,z:-.1}}),akimbo:Object.assign({},DEFAULT_POSE,{leftUpperArm:{x:0,y:.55,z:-.9},leftLowerArm:{x:0,y:-1.7,z:-.1},rightUpperArm:{x:0,y:-.55,z:.9},rightLowerArm:{x:0,y:1.7,z:.1},head:{x:0,y:0,z:.06}}),nod:Object.assign({},DEFAULT_POSE,{head:{x:.1,y:0,z:0}}),shake:Object.assign({},DEFAULT_POSE,{head:{x:0,y:-.2,z:0}}),handHelpless:Object.assign({},DEFAULT_POSE,{leftUpperArm:{x:0,y:-.1,z:-1},rightUpperArm:{x:0,y:-.1,z:1},leftHand:{x:0,y:-.2,z:-.4},rightHand:{x:0,y:-.2,z:.4}}),waveCall:Object.assign({},DEFAULT_POSE,{leftUpperArm:{x:0,y:-.3,z:-.9},leftLowerArm:{x:0,y:.5,z:-.3},leftHand:{x:0,y:0,z:-.3}}),restChin:Object.assign({},DEFAULT_POSE,{leftUpperArm:{x:0,y:-.2,z:-.75},leftLowerArm:{x:0,y:.5,z:-.1},leftHand:{x:.05,y:.25,z:.25},head:{x:.12,y:0,z:.12}}),stretch:Object.assign({},DEFAULT_POSE,{leftUpperArm:{x:0,y:-1.3,z:-.2},rightUpperArm:{x:0,y:-1.3,z:.2},spine:{x:-.15,y:0,z:-.1},chest:{x:-.1,y:0,z:-.06},head:{x:-.06,y:0,z:-.04}}),thanks:Object.assign({},DEFAULT_POSE,{leftUpperArm:{x:0,y:-.3,z:-.5},rightUpperArm:{x:0,y:-.3,z:.5},leftLowerArm:{x:0,y:.4,z:-.2},rightLowerArm:{x:0,y:.4,z:.2},leftHand:{x:0,y:0,z:-.15},rightHand:{x:0,y:0,z:.15}}),point:Object.assign({},DEFAULT_POSE,{rightUpperArm:{x:0,y:-.2,z:1.2},rightLowerArm:{x:0,y:.1,z:.6},rightHand:{x:0,y:0,z:.5}})};
+const MOODS={neutral:{},happy:{happy:.85},relaxed:{relaxed:.9,happy:.25},surprised:{surprised:.85},sad:{sad:.85},angry:{angry:.8},shy:{shy:.7,happy:.3}};
+
+/* ================= 空闲 & 反应 ================= */
+class IdleAnimator{
+  constructor(){this.breathEnabled=true;this.blinkEnabled=true;this.nextBlink=2+Math.random()*3;this.blinkT=-1;this.doubleBlink=false;}
+  update(t,delta){
+    const bones={},exprs={};
+    if(this.breathEnabled){
+      const breath=Math.sin(t*1.55),sway=Math.sin(t*.42),sway2=Math.sin(t*.27+1.3);
+      bones.chest={x:breath*.02,y:0,z:0};bones.upperChest={x:breath*.012,y:sway2*.012,z:0};
+      bones.spine={x:breath*.006,y:sway*.022,z:sway2*.008};bones.hips={x:0,y:sway*.018,z:sway2*.01};
+      bones.head={x:Math.sin(t*.85)*.012,y:Math.sin(t*.6)*.018,z:Math.sin(t*.5)*.008};
+      bones.leftShoulder={x:0,y:0,z:-breath*.014};bones.rightShoulder={x:0,y:0,z:breath*.014};
+      bones.leftUpperArm={x:0,y:0,z:Math.sin(t*.42+.5)*.018};bones.rightUpperArm={x:0,y:0,z:-Math.sin(t*.42+.9)*.018};
+    }
+    if(this.blinkEnabled){
+      if(this.blinkT<0&&t>this.nextBlink){this.blinkT=0;this.doubleBlink=Math.random()<.18;}
+      if(this.blinkT>=0){
+        this.blinkT+=delta;const dur=.16;
+        if(this.blinkT<dur)exprs.blink=Math.sin(Math.PI*(this.blinkT/dur));
+        else if(this.doubleBlink&&this.blinkT<dur*2.4){const t2=this.blinkT-dur*1.4;exprs.blink=t2>0?Math.sin(Math.PI*(t2/dur)):0;}
+        else{this.blinkT=-1;this.nextBlink=t+1.8+Math.random()*4.2;}
+      }
+    }
+    return{bones: bones,exprs: exprs};
+  }
+}
+class ReactionPlayer{
+  constructor(){this.current=null;this.t=0;}
+  play(r){this.current=r;this.t=0;}
+  update(delta){
+    if(!this.current)return{bones:{},exprs:{}};
+    this.t+=delta;const r=this.current;const p=this.t/r.duration;
+    if(p>=1){this.current=null;return{bones:{},exprs:{}};}
+    const env=Math.sin(Math.PI*Math.min(p,1));const exprs={};
+    if(r.exprs)for(const k in r.exprs)exprs[k]=r.exprs[k]*env;
+    const bones={};
+    if(r.bones)for(const bone in r.bones){
+      const def=r.bones[bone];
+      const wave=def.wave?Math.sin(this.t*def.wave):1;
+      bones[bone]={x:(def.x||0)*env*(def.waveAxis==='x'?wave:1),y:(def.y||0)*env*(def.waveAxis==='y'?wave:1),z:(def.z||0)*env*(def.waveAxis==='z'?wave:1)};
+    }
+    return{bones: bones,exprs: exprs};
+  }
+}
+
+/* ================= 虚拟人 ================= */
+class Avatar{
+  constructor(scene,position){
+    this.scene=scene;this.position=(position||new THREE.Vector3(0,0,0)).clone();
+    this.vrm=null;this.glb=null;this.basePose={};this.poseTween=null;this.exprBaseTarget={};this.exprCurrent={};this.exprNameMap={};
+    this.loader=new GLTFLoader();this.loader.register(function(p){return new VRMLoaderPlugin(p);});
+    this.signX=1;this.signZ=1;this.group=new THREE.Group();this.group.position.copy(this.position);scene.add(this.group);
+    this.isReady=false;this.name='Mrio';this.reactionPlayer=new ReactionPlayer();this.idleAnimator=new IdleAnimator();
+    this.meshes=[];this.originalMaterials=new WeakMap();
+    this._speaking=false;this.eyeGaze={yaw:0,pitch:0};
+  }
+  get mode(){return this.vrm?'vrm':(this.glb?'glb':null);}
+  load(url,onProgress){
+    const self=this;
+    return new Promise(function(resolve,reject){
+      self.loader.load(url,function(gltf){
+        try{
+          self._disposeCurrent();
+          const vrm=gltf.userData.vrm;
+          if(vrm)self._setupVRM(gltf,vrm);else self._setupGLB(gltf);
+          self.exprCurrent={};self.exprBaseTarget={};self.resetPose(true);self.isReady=true;self._applyBodyScale();
+          resolve(self.vrm||self.glb);
+        }catch(e){reject(e);}
+      },function(ev){if(ev.total&&onProgress)onProgress(ev.loaded/ev.total);},reject);
+    });
+  }
+  _disposeCurrent(){
+    const old=(this.vrm&&this.vrm.scene)||(this.glb&&this.glb.root);
+    if(old){this.group.remove(old);try{VRMUtils.deepDispose(old);}catch(e){}}
+    this.vrm=null;this.glb=null;this.isReady=false;this.meshes=[];
+  }
+  _setupVRM(gltf,vrm){
+    try{VRMUtils.removeUnnecessaryVertices(gltf.scene);}catch(e){}
+    try{VRMUtils.combineSkeletons(gltf.scene);}catch(e){}
+    try{VRMUtils.rotateVRM0(vrm);}catch(e){}
+    const self=this;
+    vrm.scene.traverse(function(o){if(o.isMesh){o.castShadow=true;o.frustumCulled=false;self.meshes.push(o);}});
+    this.vrm=vrm;this.group.add(vrm.scene);vrm.scene.updateMatrixWorld(true);
+    const hips=this.getBone('hips');this.signX=1;this.signZ=1;
+    if(hips){hips.getWorldQuaternion(_q1);this.signX=_v.set(1,0,0).applyQuaternion(_q1).x>=0?1:-1;this.signZ=_v.set(0,0,1).applyQuaternion(_q1).z>=0?1:-1;}
+    this.exprNameMap={};
+    const em=vrm.expressionManager;
+    if(em)for(let i=0;i<em.expressions.length;i++){const e=em.expressions[i];this.exprNameMap[e.expressionName.toLowerCase()]=e.expressionName;}
+    this._storeOriginalMaterials();
+  }
+  _setupGLB(gltf){
+    const root=gltf.scene;const self=this;
+    root.traverse(function(o){if(o.isMesh){o.castShadow=true;o.frustumCulled=false;self.meshes.push(o);}});
+    const norm=n=>n.toLowerCase().replace(/^.*?mixamorig:?/i,'').replace(/[_\s:.]/g,'');
+    const byName={};
+    root.traverse(function(o){if(o.isBone||o.type==='Bone')byName[norm(o.name)]=o;});
+    const bones={};
+    for(const canonical in GLB_BONE_ALIASES){const aliases=GLB_BONE_ALIASES[canonical];for(let i=0;i<aliases.length;i++){if(byName[aliases[i]]){bones[canonical]=byName[aliases[i]];break;}}}
+    if(!bones.hips||!bones.head)throw new Error('未找到人形骨骼');
+    this.group.add(root);root.updateMatrixWorld(true);
+    if(bones.leftUpperArm&&bones.rightUpperArm){
+      const lv=new THREE.Vector3(),rv=new THREE.Vector3();
+      bones.leftUpperArm.getWorldPosition(lv);bones.rightUpperArm.getWorldPosition(rv);
+      if(lv.x<rv.x){root.rotation.y+=Math.PI;root.updateMatrixWorld(true);}
+    }
+    const rest={};for(const n in bones)rest[n]=bones[n].quaternion.clone();
+    let armDroop=0;
+    if(bones.leftUpperArm&&bones.leftLowerArm){
+      const a=new THREE.Vector3(),b=new THREE.Vector3();
+      bones.leftUpperArm.getWorldPosition(a);bones.leftLowerArm.getWorldPosition(b);
+      const dir=b.sub(a);armDroop=Math.atan2(-dir.y,Math.abs(dir.x)+1e-6);if(!isFinite(armDroop)||armDroop<0)armDroop=0;
+    }
+    const morphMeshes=[];root.traverse(function(o){if(o.isMesh&&o.morphTargetDictionary)morphMeshes.push(o);});
+    const hasMorph=n=>morphMeshes.some(m=>m.morphTargetDictionary[n]!==undefined);
+    this.exprNameMap={};
+    for(const canonical in ARKIT_EXPRESSIONS){const combos=ARKIT_EXPRESSIONS[canonical];if(combos.some(c=>hasMorph(c[0])))this.exprNameMap[canonical.toLowerCase()]=canonical;}
+    this.glb={root:root,bones:bones,rest:rest,morphMeshes:morphMeshes,armDroop:armDroop,eyes:{left:bones.leftEye||null,right:bones.rightEye||null},eyeRest:{left:bones.leftEye?bones.leftEye.quaternion.clone():null,right:bones.rightEye?bones.rightEye.quaternion.clone():null}};
+    this.signX=1;this.signZ=1;
+    this._storeOriginalMaterials();
+  }
+  _storeOriginalMaterials(){
+    this.originalMaterials=new WeakMap();
+    for(const mesh of this.meshes){
+      const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+      for(const mat of mats){
+        if(mat&&!this.originalMaterials.has(mat))this.originalMaterials.set(mat,{color:mat.color?mat.color.clone():null,metalness:mat.metalness,roughness:mat.roughness,opacity:mat.opacity,emissive:mat.emissive?mat.emissive.clone():null,map:mat.map||null});
+      }
+    }
+  }
+  resetPose(instant){
+    const target={};
+    for(const def of BONE_DEFS)target[def.name]=zero();
+    for(const k in DEFAULT_POSE)target[k]=Object.assign({},zero(),DEFAULT_POSE[k]);
+    if(instant){this.basePose=target;this.poseTween=null;}
+    else this.tweenTo(target,.5);
+  }
+  applyPreset(name,duration){
+    const preset=POSE_PRESETS[name];if(!preset)return;
+    const target={};for(const def of BONE_DEFS)target[def.name]=Object.assign({},zero(),preset[def.name]||{});
+    this.tweenTo(target,duration||.55);
+  }
+  tweenTo(target,duration){
+    const from={};
+    for(const def of BONE_DEFS){const cur=this.basePose[def.name]||zero();from[def.name]={x:cur.x,y:cur.y,z:cur.z};}
+    this.poseTween={from:from,to:target,t:0,duration:duration||.5};
+  }
+  updatePoseTween(delta){
+    if(!this.poseTween)return;const tw=this.poseTween;
+    tw.t=Math.min(tw.t+delta/tw.duration,1);const e=easeInOutCubic(tw.t);
+    for(const def of BONE_DEFS){const a=tw.from[def.name],b=tw.to[def.name];
+      this.basePose[def.name]={x:a.x+(b.x-a.x)*e,y:a.y+(b.y-a.y)*e,z:a.z+(b.z-a.z)*e};}
+    if(tw.t>=1)this.poseTween=null;
+  }
+  getBone(name){
+    if(this.vrm)return this.vrm.humanoid?this.vrm.humanoid.getNormalizedBoneNode(name):null;
+    if(this.glb)return this.glb.bones[name]||null;
+    return null;
+  }
+  setEyeGaze(yaw,pitch){this.eyeGaze.yaw=yaw;this.eyeGaze.pitch=pitch;}
+  applyFrame(){
+    if(!this.mode)return;
+    const offsetMaps=Array.prototype.slice.call(arguments);
+    const self=this;
+    const compose=function(name){
+      const base=self.basePose[name]||zero();let x=base.x,y=base.y,z=base.z;
+      for(let i=0;i<offsetMaps.length;i++){const map=offsetMaps[i];const off=map&&map[name];if(off){x+=off.x||0;y+=off.y||0;z+=off.z||0;}}
+      return{x:x,y:y,z:z};
+    };
+    if(this.vrm){
+      for(const def of BONE_DEFS){const node=this.getBone(def.name);if(!node)continue;
+        const r=compose(def.name);node.rotation.set(r.x*this.signX,r.y,r.z*this.signZ);}
+      return;
+    }
+    const g=this.glb;
+    for(const name of BONE_ORDER){
+      const node=g.bones[name];if(!node)continue;const r=compose(name);
+      if(name==='leftUpperArm')r.z+=g.armDroop;else if(name==='rightUpperArm')r.z-=g.armDroop;
+      node.parent.updateWorldMatrix(true,false);node.parent.getWorldQuaternion(_q1);
+      _e.set(r.x,r.y,r.z,'XYZ');_q2.setFromEuler(_e);
+      node.quaternion.copy(_q1).invert().multiply(_q2).multiply(_q1).multiply(g.rest[name]);
+    }
+    const yaw=clamp(this.eyeGaze.yaw,-.35,.35),pitch=clamp(this.eyeGaze.pitch,-.25,.25);
+    for(const side of['left','right']){
+      const eye=g.eyes[side];if(!eye)continue;
+      eye.parent.updateWorldMatrix(true,false);eye.parent.getWorldQuaternion(_q1);
+      _e.set(pitch,yaw,0,'XYZ');_q2.setFromEuler(_e);
+      eye.quaternion.copy(_q1).invert().multiply(_q2).multiply(_q1).multiply(g.eyeRest[side]);
+    }
+  }
+  setMood(v){this.exprBaseTarget=Object.assign({},v);}
+  setExpressionBase(name,value){this.exprBaseTarget[name]=value;}
+  applyExpressions(delta){
+    if(!this.mode)return;
+    const overrides=Array.prototype.slice.call(arguments,1);
+    const k=Math.min(1,delta*7);
+    const touched={};
+    for(const n in this.exprCurrent)touched[n]=1;
+    for(const n in this.exprBaseTarget)touched[n]=1;
+    for(let i=0;i<overrides.length;i++){const m=overrides[i];if(m)for(const n in m)touched[n]=1;}
+    const finalValues={};
+    for(const name in touched){
+      const actual=this.exprNameMap[name.toLowerCase()];if(!actual)continue;
+      const target=this.exprBaseTarget[name]||0;const cur=this.exprCurrent[name]||0;
+      let v=cur+(target-cur)*k;this.exprCurrent[name]=v;
+      for(let i=0;i<overrides.length;i++){const m=overrides[i];if(m&&m[name]!==undefined)v+=m[name];}
+      finalValues[actual]=clamp(v,0,1);
+    }
+    if(this.vrm){const em=this.vrm.expressionManager;if(em)for(const n in finalValues)em.setValue(n,finalValues[n]);return;}
+    const morphWeights={};
+    for(const name in finalValues){
+      const combos=ARKIT_EXPRESSIONS[name];if(!combos)continue;
+      const v=finalValues[name];
+      for(let i=0;i<combos.length;i++)morphWeights[combos[i][0]]=(morphWeights[combos[i][0]]||0)+v*combos[i][1];
+    }
+    for(const mesh of this.glb.morphMeshes){
+      for(const mn in morphWeights){
+        const idx=mesh.morphTargetDictionary[mn];
+        if(idx!==undefined)mesh.morphTargetInfluences[idx]=clamp(morphWeights[mn],0,1);
+      }
+    }
+  }
+  update(delta){if(this.vrm)this.vrm.update(delta);}
+  setExpression(expr){
+    const map={happy:'happy',sad:'sad',neutral:'neutral',shy:'shy',angry:'angry',surprised:'surprised',relaxed:'relaxed',blink:'blink',blinkLeft:'blinkLeft',blinkRight:'blinkRight'};
+    const key=map[expr]||'neutral';
+    if(key==='neutral')this.setMood({});
+    else if(MOODS[key])this.setMood(MOODS[key]);
+    else{const self=this;this.setMood({});this.setExpressionBase(key,1);setTimeout(function(){self.setExpressionBase(key,0);},300);}
+  }
+  startSpeaking(){if(this._speaking)return;this._speaking=true;this._animateMouth();}
+  _animateMouth(){
+    if(!this._speaking||!this.vrm)return;
+    const open=.2+Math.random()*.6;
+    if(this.vrm.expressionManager)this.vrm.expressionManager.setValue('aa',open);
+    const self=this;
+    requestAnimationFrame(function(){self._animateMouth();});
+  }
+  stopSpeaking(){this._speaking=false;if(this.vrm&&this.vrm.expressionManager)this.vrm.expressionManager.setValue('aa',0);}
+  updateAnimation(t,delta,gazeData){
+    if(!this.isReady)return;
+    this.updatePoseTween(delta);
+    const idleOut=this.idleAnimator.update(t,delta);
+    const reactOut=this.reactionPlayer.update(delta);
+    this.setEyeGaze(gazeData.yaw*.55,gazeData.pitch*.55);
+    const offsets={};
+    const merge=function(map){
+      if(!map)return;
+      for(const bone in map){
+        if(!offsets[bone])offsets[bone]={x:0,y:0,z:0};
+        const off=map[bone];
+        offsets[bone].x+=off.x||0;offsets[bone].y+=off.y||0;offsets[bone].z+=off.z||0;
+      }
+    };
+    merge(idleOut.bones);merge(reactOut.bones);merge(gazeData);
+    this.applyFrame(offsets);
+    this.applyExpressions(delta,idleOut.exprs,reactOut.exprs);
+    this.update(delta);
+  }
+  respondWithAction(text,emotion){
+    const lower=text.toLowerCase();let action='natural';let expr=emotion||'neutral';
+    if(/你好|嗨|hi|hello/.test(lower)){action='greet';expr='happy';}
+    else if(/再见|拜拜|bye/.test(lower)){action='waveCall';expr='relaxed';}
+    else if(/谢谢|感谢|thank/.test(lower)){action='thanks';expr='happy';}
+    else if(/开心|高兴|哈哈/.test(lower)){expr='happy';}
+    else if(/难过|伤心|哭/.test(lower)){action='handHelpless';expr='sad';}
+    else if(/生气|愤怒|讨厌/.test(lower)){action='akimbo';expr='angry';}
+    else if(/惊讶|哇|天哪/.test(lower)){action='stretch';expr='surprised';}
+    else if(/点头|好的|嗯/.test(lower)){action='nod';expr='relaxed';}
+    else if(/摇头|不行|不是/.test(lower)){action='shake';expr='sad';}
+    else if(/伸懒腰|伸展/.test(lower)){action='stretch';expr='relaxed';}
+    this.applyPreset(action,.45);this.setExpression(expr);
+    return{action: action,expr: expr};
+  }
+  applyOutfit(name){
+    const outfits={
+      default:{hair:'#8a6a5a',top:'#d4a0b0',bottom:'#6a5a7a'},
+      casual:{hair:'#7a5a4a',top:'#7ab8d4',bottom:'#4a6a7a'},
+      elegant:{hair:'#3a2a2a',top:'#c8a0b8',bottom:'#2a2a3a'},
+      cyber:{hair:'#2a2a5a',top:'#4080b0',bottom:'#1a2a3a'},
+      dark:{hair:'#1a0a0a',top:'#2a1a1a',bottom:'#0a0a0a'}
+    };
+    const o=outfits[name];if(!o)return;
+    for(const part in o)this._applyColorToPart(part,o[part]);
+  }
+  _applyColorToPart(part,hexColor){
+    const kw={
+      skin:['skin','body','face','head','torso','arm','leg','hand','foot','finger'],
+      hair:['hair','fringe','ponytail'],
+      top:['top','shirt','dress','uniform','jacket','coat','sweater'],
+      bottom:['bottom','pants','skirt','shorts','jeans'],
+      shoes:['shoe','boot','sneaker','sock','footwear']
+    };
+    const words=kw[part]||[];
+    const color=new THREE.Color(hexColor);
+    for(const mesh of this.meshes){
+      const name=mesh.name.toLowerCase();
+      if(!words.some(w=>name.indexOf(w)>=0))continue;
+      const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+      for(const mat of mats)if(mat&&mat.color)mat.color.copy(color);
+    }
+  }
+  resetBodyScale(){}
+}
+
+/* ================= 场景 ================= */
+const canvas=$('#stage');
+const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true,powerPreference:'high-performance'});
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();
+let pmrem=null;
+try{
+  pmrem=new THREE.PMREMGenerator(renderer);
+  scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;
+  scene.environmentIntensity=.45;
+}catch(e){console.warn('环境贴图失败',e);}
+const camera=new THREE.PerspectiveCamera(30,window.innerWidth/window.innerHeight,.1,60);
+const CAM_TARGET_Y=1.02;
+let ddzActive=false;
+
+function layoutCamera(){
+  if(ddzActive)return;
+  let CAM_DIST,lookY,camX=0;
+  if(window.innerWidth<=600){CAM_DIST=5.5;lookY=1.34;}
+  else if(window.innerWidth<=880){CAM_DIST=4.5;lookY=1.3;}
+  else if(window.innerWidth<=1024){CAM_DIST=3.8;lookY=1.28;}
+  else{
+    const sidebarW=264;
+    const chatW=Math.min(640,window.innerWidth-sidebarW-280);
+    if(chatW>0){
+      const vrmCenter=sidebarW+chatW+(window.innerWidth-sidebarW-chatW)/2;
+      const tempDist=2.9;
+      const visH0=2*tempDist*Math.tan(15*Math.PI/180);
+      const visW0=visH0*(window.innerWidth/window.innerHeight);
+      camX=(vrmCenter-window.innerWidth/2)/window.innerWidth*visW0;
+      CAM_DIST=tempDist;lookY=1.02;
+    }else{CAM_DIST=3.8;lookY=1.28;}
+  }
+  camera.position.set(camX,1.35,CAM_DIST);
+  camera.lookAt(camX,lookY,0);
+  camera.updateProjectionMatrix();
+}
+function layoutDDZCamera(){
+  const aspect=window.innerWidth/window.innerHeight;
+  let CAM_DIST=4.2;
+  if(window.innerWidth<=600)CAM_DIST=4.8;
+  else if(aspect<1)CAM_DIST=5.2;
+  camera.position.set(0,1.35,CAM_DIST);
+  camera.lookAt(0,1.0,0);
+  camera.updateProjectionMatrix();
+}
+layoutCamera();
+const keyLight=new THREE.DirectionalLight(0xfff5f0,2.2);
+keyLight.position.set(1.6,2.6,2.2);keyLight.castShadow=true;
+keyLight.shadow.mapSize.set(1024,1024);
+keyLight.shadow.camera.top=2.2;keyLight.shadow.camera.bottom=-.4;
+keyLight.shadow.camera.left=-1.6;keyLight.shadow.camera.right=1.6;
+keyLight.shadow.camera.near=.5;keyLight.shadow.camera.far=8;
+keyLight.shadow.bias=-.0003;keyLight.shadow.normalBias=.02;
+scene.add(keyLight);
+const rimLight=new THREE.DirectionalLight(0xccccdd,1.4);rimLight.position.set(-2.2,1.9,-2.4);scene.add(rimLight);
+scene.add(new THREE.HemisphereLight(0xbbbbcc,0x222233,.5));
+const fillLight=new THREE.PointLight(0xffffff,.4,6,1.6);fillLight.position.set(0,1.1,2);scene.add(fillLight);
+const shadowCatcher=new THREE.Mesh(new THREE.PlaneGeometry(8,8),new THREE.ShadowMaterial({opacity:.22,transparent:true,depthWrite:false}));
+shadowCatcher.rotation.x=-Math.PI/2;shadowCatcher.position.y=.001;shadowCatcher.receiveShadow=true;scene.add(shadowCatcher);
+
+window.addEventListener('resize',function(){
+  camera.aspect=window.innerWidth/window.innerHeight;
+  renderer.setSize(window.innerWidth,window.innerHeight);
+  if(ddzActive)layoutDDZCamera();else layoutCamera();
+});
+
+/* ================= 视线 ================= */
+class GazeController{
+  constructor(cam){this.camera=cam;this.enabled=true;this.mouse=new THREE.Vector2(0,0);this.yaw=0;this.pitch=0;this.tYaw=0;this.tPitch=0;}
+  onPointerMove(x,y){this.mouse.set(x,y);}
+  update(delta){
+    const maxYaw=.62,maxPitch=.38;
+    this.tYaw=this.enabled?this.mouse.x*maxYaw:Math.sin(performance.now()*.0004)*.25;
+    this.tPitch=this.enabled?-this.mouse.y*maxPitch:Math.sin(performance.now()*.0007)*.08;
+    const k=Math.min(1,delta*4.5);
+    this.yaw+=(this.tYaw-this.yaw)*k;
+    this.pitch+=(this.tPitch-this.pitch)*k;
+    return{head:{x:this.pitch*.55,y:this.yaw*.55,z:0},neck:{x:this.pitch*.28,y:this.yaw*.28,z:0},upperChest:{x:this.pitch*.1,y:this.yaw*.17,z:0},yaw:this.yaw,pitch:this.pitch};
+  }
+}
+const gaze=new GazeController(camera);
+window.addEventListener('pointermove',function(e){gaze.onPointerMove((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1);});
+
+/* ================= 虚拟人实例 ================= */
+let mainAvatar=null;
+let ddzBot=null;
+let ddzBotLoading=false;
+
+function ensureDDZBot(){
+  if(ddzBot)return ddzBot;
+  ddzBot=new Avatar(scene,new THREE.Vector3(1.15,0,0));
+  ddzBot.name='玩家B';
+  ddzBot.group.visible=false;
+  ddzBotLoading=true;
+  ddzBot.load(PRESET_MODELS.model2.url).then(function(){
+    ddzBot.applyOutfit('elegant');
+    ddzBot.setExpression('relaxed');
+    ddzBotLoading=false;
+  }).catch(function(){ddzBotLoading=false;});
+  return ddzBot;
+}
+
+/* ================= 斗地主 ================= */
+const DDZ=(function(){
+  const CV={'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14,'2':15,'小王':16,'大王':17};
+  const RED=['♥','♦'];
+  const TYPE={EMPTY:0,SINGLE:1,PAIR:2,TRIPLE:3,TRIP_1:4,TRIP_2:5,STRAIGHT:6,SEQ_PAIR:7,PLANE:8,PLANE1:9,PLANE2:10,FOUR2:11,BOMB:12,ROCKET:13};
+  const TN={0:'空',1:'单张',2:'对子',3:'三张',4:'三带一',5:'三带二',6:'顺子',7:'连对',8:'飞机',9:'飞机带单',10:'飞机带对',11:'四带二',12:'炸弹',13:'王炸'};
+
+  /* ---------- 台词库 ---------- */
+  const QUIPS={
+    userPlayGood:['这张不错哦～','嗯哼，出得挺聪明嘛','哦？有点意思'],
+    userPlaySmall:['这…就出这么小？','哎呀，太客气啦～','嘿嘿，这手牌留着挺可惜的吧？'],
+    userPlayBig:['哇，这么大？吓我一跳','厉害厉害～不过我也不是吃素的','哼，你倒是挺舍得'],
+    userPlayBomb:['啊啊啊！炸弹！！','你炸我干嘛呀 (｡•́︿•̀｡)','哎呀…被你炸到了'],
+    userPass:['不要啦？那我出咯～','嗯～过啦？','嘿嘿，看来接不上呢'],
+    aiPass:['我也要不起～','这手牌好烦…','过过过～'],
+    aiPlayBig:['看我的！','嘿嘿，这手怎么样？','轮到我了～'],
+    aiPlayBomb:['炸弹来啦～','小心哦～','嗯哼～炸给你看'],
+    userFew:['你就剩几张啦，得小心了呢','快点出完呀～我等不及了','哎呀，要赢了呢'],
+    aiFew:['我快出完了哦～','嘿嘿，马上要赢啦～','就剩几张啦～'],
+    encourage:['加油呀，还有机会～','别急嘛，慢慢来','稳住，你还没输呢～'],
+    tease:['这手牌不太行哦～','哎呀～这牌运有点差呢','嘿嘿，要不要求我？'],
+    warn:['嗯…这手要小心哦','别急着出～','想清楚再出呀'],
+    greetLandlord:['我是地主哦，可不会手下留情～','地主在此！接招吧','嘿嘿，牌不错～我先出咯'],
+    greetFarmer:['这局我是农民，一起对付地主吧～','地主是别人，我们是一伙的！','放心，我帮你～'],
+    aiFarmerVsUser:['哎呀，你是地主啊…那我们俩一起上咯','地主小心啦，两个农民要联手了～','哼，看你一个人怎么挡'],
+    aiFarmerVsLandlord:['地主别得意～','我和主人一起收拾你','看招！'],
+    userWinLast:['呜呜呜…被你赢走了','哎呀，输了输了～','好吧好吧，你厉害'],
+    landlordLose:['啊…地主输了…','嘿嘿，果然还是斗不过我们俩','哼～下次再来']
+  };
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  function say(who,text){
+    const box=$('#ddzTalk');
+    const whoEl=box?box.querySelector('.who'):null;
+    const txtEl=$('#ddzTalkText');
+    if(!whoEl||!txtEl)return;
+    whoEl.textContent=who+'：';
+    txtEl.textContent=text;
+  }
+
+  function genAllCards(){
+    const list=[];const suits=['♥','♦','♠','♣'];
+    const vals=['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
+    for(let i=0;i<vals.length;i++)for(let j=0;j<suits.length;j++)list.push({val:vals[i],suit:suits[j],num:CV[vals[i]]});
+    list.push({val:'小王',suit:'',num:16});list.push({val:'大王',suit:'',num:17});
+    return list;
+  }
+  function shuffle(arr){
+    const a=arr.slice();
+    for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}
+    return a;
+  }
+  function countCards(cards){
+    const nums=cards.map(function(c){return c.num;}).sort(function(a,b){return a-b;});
+    const cnt={};for(let i=0;i<nums.length;i++)cnt[nums[i]]=(cnt[nums[i]]||0)+1;
+    const countMap=Object.keys(cnt).map(function(k){return{num:+k,count:cnt[k]};}).sort(function(x,y){return y.count-x.count;});
+    return{nums:nums,countMap:countMap,cnt:cnt};
+  }
+  function getCardType(cards){
+    if(!cards.length)return{type:TYPE.EMPTY,base:0,ok:true};
+    const cc=countCards(cards);const nums=cc.nums,countMap=cc.countMap;const len=cards.length;
+    if(len===2&&nums[0]===16&&nums[1]===17)return{type:TYPE.ROCKET,base:17,ok:true};
+    if(countMap.length===1&&countMap[0].count===4)return{type:TYPE.BOMB,base:countMap[0].num,ok:true};
+    if(len===1)return{type:TYPE.SINGLE,base:nums[0],ok:true};
+    if(len===2&&countMap[0].count===2)return{type:TYPE.PAIR,base:nums[0],ok:true};
+    if(len===3&&countMap[0].count===3)return{type:TYPE.TRIPLE,base:nums[0],ok:true};
+    if(len===4&&countMap[0].count===3&&countMap[1].count===1)return{type:TYPE.TRIP_1,base:countMap[0].num,ok:true};
+    if(len===5&&countMap[0].count===3&&countMap[1].count===2)return{type:TYPE.TRIP_2,base:countMap[0].num,ok:true};
+    function isStraight(nl){
+      if(nl.length<5)return false;
+      for(let i=0;i<nl.length;i++)if(nl[i]>=15)return false;
+      const s=[];const seen={};
+      for(let i=0;i<nl.length;i++){if(!seen[nl[i]]){seen[nl[i]]=1;s.push(nl[i]);}}
+      s.sort(function(a,b){return a-b;});
+      if(s.length!==nl.length)return false;
+      for(let i=1;i<s.length;i++)if(s[i]-s[i-1]!==1)return false;
+      return s[0];
+    }
+    const stBase=isStraight(nums);
+    if(stBase!==false)return{type:TYPE.STRAIGHT,base:stBase,ok:true};
+    function isSeqPair(nl){
+      if(nl.length%2!==0)return false;
+      const c={};for(let i=0;i<nl.length;i++)c[nl[i]]=(c[nl[i]]||0)+1;
+      const pairs=[];
+      for(const k in c){const v=+k;if(c[v]!==2||v>=15)return false;pairs.push(v);}
+      pairs.sort(function(a,b){return a-b;});
+      if(pairs.length<3)return false;
+      for(let i=1;i<pairs.length;i++)if(pairs[i]-pairs[i-1]!==1)return false;
+      return pairs[0];
+    }
+    const seqBase=isSeqPair(nums);
+    if(seqBase!==false)return{type:TYPE.SEQ_PAIR,base:seqBase,ok:true};
+    const tripleList=countMap.filter(function(x){return x.count===3;}).map(function(x){return x.num;}).sort(function(a,b){return a-b;});
+    if(tripleList.length>=2){
+      const planeBase=tripleList[0];let okPlane=true;
+      for(let i=1;i<tripleList.length;i++)if(tripleList[i]-tripleList[i-1]!==1)okPlane=false;
+      if(okPlane){
+        const pl=tripleList.length;
+        if(len===pl*3)return{type:TYPE.PLANE,base:planeBase,ok:true};
+        if(len===pl*4)return{type:TYPE.PLANE1,base:planeBase,ok:true};
+        if(len===pl*5)return{type:TYPE.PLANE2,base:planeBase,ok:true};
+      }
+    }
+    if(countMap[0].count===4&&len===6&&(countMap[1].count===2||(countMap[1].count===1&&countMap[2]&&countMap[2].count===1)))return{type:TYPE.FOUR2,base:countMap[0].num,ok:true};
+    return{type:TYPE.EMPTY,base:0,ok:false};
+  }
+  function canBeat(last,now){
+    if(!now.ok)return false;
+    if(last.type===TYPE.EMPTY)return true;
+    if(now.type===TYPE.ROCKET)return true;
+    if(last.type===TYPE.ROCKET)return false;
+    if(now.type===TYPE.BOMB){if(last.type===TYPE.BOMB)return now.base>last.base;return true;}
+    if(now.type!==last.type)return false;
+    return now.base>last.base;
+  }
+  function genAllLegalCards(hand){
+    const result=[];const numMap=new Map();
+    for(let i=0;i<hand.length;i++){const c=hand[i];if(!numMap.has(c.num))numMap.set(c.num,[]);numMap.get(c.num).push(c);}
+    const nums=Array.from(numMap.keys()).sort(function(a,b){return a-b;});
+    const addedKey=new Set();
+    const addItem=function(cards){
+      const t=getCardType(cards);
+      const key=cards.map(function(x){return x.num;}).sort().join(',')+'|'+t.type+'|'+t.base;
+      if(addedKey.has(key))return true;addedKey.add(key);result.push({cards:cards.slice(),type:t});
+      return result.length<600;
+    };
+    for(let i=0;i<hand.length;i++)addItem([hand[i]]);
+    for(let i=0;i<nums.length;i++){const arr=numMap.get(nums[i]);if(arr.length>=2)addItem([arr[0],arr[1]]);}
+    for(let i=0;i<nums.length;i++){const arr=numMap.get(nums[i]);if(arr.length>=3)addItem([arr[0],arr[1],arr[2]]);}
+    for(let i=0;i<nums.length;i++){const arr=numMap.get(nums[i]);if(arr.length>=4)addItem([arr[0],arr[1],arr[2],arr[3]]);}
+    let wj=null,dj=null;
+    for(let i=0;i<hand.length;i++){if(hand[i].num===16)wj=hand[i];else if(hand[i].num===17)dj=hand[i];}
+    if(wj&&dj)addItem([wj,dj]);
+    outer:for(let start=3;start<=10;start++)for(let len=5;len<=12;len++){
+      const need=[];for(let i=0;i<len;i++)need.push(start+i);
+      if(need.some(function(x){return x>=15;}))continue;
+      const pick=[];let ok=true;
+      for(let i=0;i<need.length;i++){
+        const v=need[i];
+        if(!numMap.has(v)||numMap.get(v).length<1){ok=false;break;}
+        pick.push(numMap.get(v)[0]);
+      }
+      if(ok&&pick.length===len&&!addItem(pick))break outer;
+    }
+    outer2:for(let start=3;start<=12;start++)for(let pc=3;pc<=10;pc++){
+      const need=[];for(let i=0;i<pc;i++)need.push(start+i);
+      if(need.some(function(x){return x>=15;}))continue;
+      const pick=[];let ok=true;
+      for(let i=0;i<need.length;i++){
+        const v=need[i];
+        if(!numMap.has(v)||numMap.get(v).length<2){ok=false;break;}
+        pick.push(numMap.get(v)[0],numMap.get(v)[1]);
+      }
+      if(ok&&!addItem(pick))break outer2;
+    }
+    return result;
+  }
+  function estimateMinRound(hand){
+    const cc=countCards(hand);const cnt=cc.cnt;let rounds=0;
+    const nums=Object.keys(cnt).map(Number);const used={};
+    for(let i=0;i<nums.length;i++)used[nums[i]]=0;
+    const triples=nums.filter(function(x){return cnt[x]>=3;}).sort(function(a,b){return a-b;});
+    for(let i=0;i<triples.length;i++){if(used[triples[i]]>=3)continue;used[triples[i]]+=3;rounds+=1;}
+    for(let i=0;i<nums.length;i++){const rem=cnt[nums[i]]-used[nums[i]];if(rem<=0)continue;if(rem>=2)rounds+=Math.floor(rem/2);rounds+=rem%2;}
+    return rounds;
+  }
+  function evalHandQuality(hand){
+    const roundEst=estimateMinRound(hand);const cc=countCards(hand);
+    const singleCount=cc.countMap.filter(function(i){return i.count===1;}).length;
+    return -roundEst*22-singleCount*5-hand.length*.6;
+  }
+  function getUserWeakType(logArr){
+    if(logArr.length<4)return null;
+    const stat={};stat[TYPE.SINGLE]=0;stat[TYPE.PAIR]=0;stat[TYPE.TRIPLE]=0;stat[TYPE.STRAIGHT]=0;stat[TYPE.SEQ_PAIR]=0;
+    for(let i=0;i<logArr.length;i++)if(stat[logArr[i]]!==undefined)stat[logArr[i]]++;
+    let minType=null,minVal=Infinity;
+    for(const k in stat){const rate=stat[k]/logArr.length;if(rate<minVal){minVal=rate;minType=Number(k);}}
+    return minVal<.28?minType:null;
+  }
+
+  let G={status:'idle',user:[],ai1:[],ai2:[],bottom:[],landlord:null,lastLandlord:null,turn:null,lastPlayer:null,lastPlay:{cards:[],typeInfo:{type:TYPE.EMPTY,base:0,ok:true}},selected:[],passCount:0,played:[],typeLog:[],chattiness:1};
+  let aggressive=false;
+  let opened=false;
+
+  function info(t){const el=$('#ddzInfo');if(el)el.textContent=t;}
+  function aiLog(t){const el=$('#ddzLog');if(el)el.textContent='AI 思考日志：'+t;}
+  function isUserLandlord(){return G.landlord==='user';}
+  function isUserFarmer(){return G.landlord!=='user';}
+
+  function render(){
+    $('#ai1Count').textContent=G.ai1.length;
+    $('#ai2Count').textContent=G.ai2.length;
+    $('#userCount').textContent=G.user.length;
+    const ud=$('#userCards');ud.innerHTML='';
+    const sorted=G.user.slice().sort(function(a,b){return b.num-a.num;});
+    for(let i=0;i<sorted.length;i++){
+      const c=sorted[i];
+      const el=document.createElement('div');
+      el.className='card '+(RED.indexOf(c.suit)>=0?'red':'black')+(G.selected.indexOf(c)>=0?' selected':'');
+      el.textContent=c.suit+c.val;
+      (function(card){
+        el.onclick=function(){
+          if(G.status!=='play'||G.turn!=='user')return;
+          const i=G.selected.indexOf(card);
+          if(i>-1)G.selected.splice(i,1);else G.selected.push(card);
+          render();
+        };
+      })(c);
+      ud.appendChild(el);
+    }
+    const deskCards=$('#deskCards');
+    deskCards.innerHTML='';
+    for(let i=0;i<G.lastPlay.cards.length;i++){
+      const c=G.lastPlay.cards[i];
+      const el=document.createElement('div');
+      el.className='card '+(RED.indexOf(c.suit)>=0?'red':'black');
+      el.textContent=c.suit+c.val;
+      deskCards.appendChild(el);
+    }
+    $('#lastType').textContent=TN[G.lastPlay.typeInfo.type];
+    $('#userTag').textContent=G.landlord==='user'?'【地主】':'';
+    $('#ai1Tag').textContent=G.landlord==='ai1'?'【地主】':'';
+    $('#ai2Tag').textContent=G.landlord==='ai2'?'【地主】':'';
+    $('#dealBtn').disabled=G.status!=='idle';
+    $('#playBtn').disabled=G.status!=='play'||G.turn!=='user';
+    $('#passBtn').disabled=G.status!=='play'||G.turn!=='user';
+    $('#ai1Box').classList.toggle('is-turn',G.turn==='ai1');
+    $('#ai2Box').classList.toggle('is-turn',G.turn==='ai2');
+    $('#userBox').classList.toggle('is-turn',G.turn==='user');
+  }
+  function isTeammate(aiName){return aiName!==G.landlord;}
+
+  /* ---------- 核心策略函数：根据是否用户是地主/农民，动态调整 ---------- */
+  function simulateTwoStep(aiHand,playItem,landlordHand,mateHand){
+    const afterAiHand=aiHand.filter(function(c){return playItem.cards.indexOf(c)<0;});
+    const landLegal=genAllLegalCards(landlordHand);
+    const landBeat=landLegal.filter(function(x){return canBeat(playItem.type,x.type);});
+    if(landBeat.length===0)return evalHandQuality(mateHand)*.6+evalHandQuality(afterAiHand)*.4;
+    const landChoice=landBeat[landBeat.length-1];
+    const mateBeat=genAllLegalCards(mateHand).filter(function(x){return canBeat(landChoice.type,x.type);});
+    if(mateBeat.length>0)return evalHandQuality(afterAiHand)*.5+30;
+    return evalHandQuality(afterAiHand)-40;
+  }
+
+  function pickBestResponse(candidates,aiName,isFarmer){
+    if(!candidates.length)return null;
+    const aiHand=aiName==='ai1'?G.ai1:G.ai2;
+    const mateName=G.landlord==='ai1'?'ai2':'ai1';
+    const mateHand=mateName==='ai1'?G.ai1:G.ai2;
+    const landlordHand=G.landlord==='user'?G.user:(G.landlord==='ai1'?G.ai1:G.ai2);
+    const weakType=getUserWeakType(G.typeLog);
+    const userIsLandlord=(G.landlord==='user');
+    const lastIsUser=(G.lastPlayer==='user');
+    const lastIsMate=(G.lastPlayer===mateName);
+    candidates.sort(function(a,b){return a.type.base-b.type.base;});
+    let best=null,bestScore=-Infinity;
+    for(let ci=0;ci<candidates.length;ci++){
+      const item=candidates[ci];
+      const newHand=aiHand.filter(function(x){return item.cards.indexOf(x)<0;});
+      let score=simulateTwoStep(aiHand,item,landlordHand,mateHand);
+      const t=item.type;const isBomb=t.type===TYPE.BOMB||t.type===TYPE.ROCKET;
+      if(isFarmer){
+        /* === 用户是地主：两个AI都要拼命压用户 === */
+        if(userIsLandlord){
+          // 打用户越狠越好
+          if(lastIsUser){
+            // 用户出牌，我们要压
+            score += 80;
+            if(G.user.length<=2)score+=250;
+            else if(G.user.length<=5)score+=100;
+          }
+          // 地主快赢了（用户手牌少），无论如何都要抢
+          if(G.user.length<=2){
+            if(t.type===TYPE.SINGLE&&G.user.length===1)score+=300;
+            else score+=150;
+          }
+          // 炸弹只在关键时用，比如用户快赢或用户出了大牌
+          if(isBomb){
+            if(G.user.length<=4)score+=350;
+            else if(aggressive)score-=30;
+            else score-=100;
+          }
+          // 保持手牌优势——自己比对手牌少就好
+          if(newHand.length<=3)score+=80;
+        } else {
+          /* === 用户是农民，我是队友AI === */
+          // 优先给用户喂牌：用户出牌时，尽量不压
+          if(lastIsUser)score-=400;
+          // 若地主（另一个AI）快出完，必须压
+          if(G.landlord==='ai1'||G.landlord==='ai2'){
+            const landlordIsOtherAi=(G.landlord!==aiName);
+            if(landlordIsOtherAi){
+              // 我才是真农民，地主的另一个AI是在压用户，得阻止
+              const otherAiHand=G.landlord==='ai1'?G.ai1:G.ai2;
+              if(otherAiHand.length<=3)score+=250;
+            }
+          }
+          // 用户和队友只剩几张时，清场给用户
+          if(G.user.length<=2&&lastIsMate)score-=200;
+          if(isBomb)score-=80;
+        }
+      } else {
+        /* === AI 是地主 === */
+        if(G.user.length===0)score+=9999;
+        if(newHand.length===0)score+=9999;
+        if(isBomb)score-=aggressive?20:70;
+        // 用户是农民——主要压农民，尤其用户
+        if(lastIsUser){
+          score+=120;
+          if(G.user.length<=3)score+=180;
+        }
+        // 另一个农民只剩几张也要压
+        const otherFarmer=(aiName==='ai1')?G.ai2:G.ai1;
+        if(otherFarmer.length<=2)score+=120;
+      }
+      if(score>bestScore){bestScore=score;best=item.cards;}
+    }
+    const bestType=best?TN[getCardType(best).type]:'';
+    aiLog(userIsLandlord?
+      (weakType!==null?`【围剿地主模式】识别地主弱点：${TN[weakType]}，${candidates.length}个候选，出${bestType}`:`【围剿地主模式】评估${candidates.length}个候选，出${bestType}`)
+      : `【配合队友模式】评估${candidates.length}个候选，出${bestType}`);
+    return best;
+  }
+
+  function findBestLead(hand,aiName,isFarmer){
+    const allLegal=genAllLegalCards(hand);if(!allLegal.length)return null;
+    let best=null,bestScore=-Infinity;
+    const mateName=G.landlord==='ai1'?'ai2':'ai1';
+    const mateHand=mateName==='ai1'?G.ai1:G.ai2;
+    const landlordHand=G.landlord==='user'?G.user:(G.landlord==='ai1'?G.ai1:G.ai2);
+    const weakType=getUserWeakType(G.typeLog);
+    const userIsLandlord=(G.landlord==='user');
+    for(let ci=0;ci<allLegal.length;ci++){
+      const item=allLegal[ci];
+      const newHand=hand.filter(function(x){return item.cards.indexOf(x)<0;});
+      let score=simulateTwoStep(hand,item,landlordHand,mateHand);
+      const t=item.type;const isBomb=t.type===TYPE.BOMB||t.type===TYPE.ROCKET;
+      if(isFarmer){
+        if(userIsLandlord){
+          /* 用户是地主，农民首出：出小牌让地主接不上，或直接强力压 */
+          score-=t.base*1.0;
+          if(isBomb)score-=aggressive?120:220;
+          // 优先出小牌堵地主
+          if(t.type===TYPE.SINGLE&&t.base<=10)score+=50;
+          if(G.user.length<=3)score+=100;
+          if(weakType!==null&&t.type===weakType)score+=150;
+        } else {
+          /* 用户是农民，队友AI首出：给用户喂牌 */
+          if(G.user.length<=2){
+            if(t.type===TYPE.SINGLE)score+=300;
+            if(t.type===TYPE.PAIR)score+=200;
+            if(isBomb)score-=500;
+          }
+          score-=t.base*.5;
+          // 避免出用户容易压不住的牌
+          if(G.user.length>5)score-=t.base*.5;
+        }
+      } else {
+        if(newHand.length===0)score+=9999;
+        if(isBomb)score-=aggressive?20:60;
+        // 地主：出大牌抢先手
+        score+=t.base*.4;
+      }
+      if(score>bestScore){bestScore=score;best=item.cards;}
+    }
+    aiLog(userIsLandlord?
+      (weakType!==null?`【围剿地主首发】针对弱点${TN[weakType]}，出${best?TN[getCardType(best).type]:''}`:'【围剿地主首发】')
+      : `【配合队友首发】${best?TN[getCardType(best).type]:''}`);
+    return best;
+  }
+
+  function aiChoosePlay(aiName){
+    const hand=aiName==='ai1'?G.ai1:G.ai2;
+    const isFarmer=isTeammate(aiName);
+    const last=G.lastPlay.typeInfo;
+    const allLegal=genAllLegalCards(hand);
+    if(last.type!==TYPE.EMPTY){
+      const cands=allLegal.filter(function(x){return canBeat(last,x.type);});
+      if(!cands.length)return null;
+      return pickBestResponse(cands,aiName,isFarmer);
+    }
+    return findBestLead(hand,aiName,isFarmer);
+  }
+  function removeFrom(arr,cards){
+    for(let i=0;i<cards.length;i++){const idx=arr.indexOf(cards[i]);if(idx>-1)arr.splice(idx,1);}
+  }
+
+  function whoLabel(player){
+    if(player==='user')return '你';
+    if(player==='ai1')return 'AI-A';
+    return 'AI-B';
+  }
+
+  function doPlay(player,playCards){
+    if(G.status!=='play')return;
+    const typeInfo=getCardType(playCards);
+    if(player==='user')G.typeLog.push(typeInfo.type);
+    G.played.push.apply(G.played,playCards);
+    if(player==='user')removeFrom(G.user,playCards);
+    else if(player==='ai1')removeFrom(G.ai1,playCards);
+    else removeFrom(G.ai2,playCards);
+    G.lastPlay={cards:playCards,typeInfo:getCardType(playCards)};
+    G.lastPlayer=player;
+    G.passCount=0;G.selected=[];
+    render();
+
+    /* --- 台词 --- */
+    if(player==='user'){
+      if(typeInfo.type===TYPE.BOMB||typeInfo.type===TYPE.ROCKET){
+        say('Mrio',pick(QUIPS.userPlayBomb));
+        if(mainAvatar&&mainAvatar.isReady){mainAvatar.setExpression('surprised');mainAvatar.applyPreset('stretch',.35);}
+      } else if(playCards.length===1&&playCards[0].num<=9){
+        if(Math.random()<.35)say('Mrio',pick(QUIPS.userPlaySmall));
+      } else if(playCards.length>=3){
+        if(Math.random()<.3)say('Mrio',pick(QUIPS.userPlayGood));
+      }
+    } else {
+      if(typeInfo.type===TYPE.BOMB||typeInfo.type===TYPE.ROCKET){
+        if(Math.random()<.7)say(player==='ai1'?'AI-A':'AI-B',pick(QUIPS.aiPlayBomb));
+        if(ddzBot&&ddzBot.isReady){ddzBot.setExpression('surprised');ddzBot.applyPreset('stretch',.35);}
+      } else if(playCards.length>=3&&Math.random()<.3){
+        say(player==='ai1'?'AI-A':'AI-B',pick(QUIPS.aiPlayBig));
+      }
+    }
+
+    /* --- 状态提醒 --- */
+    if(G.user.length>0&&G.user.length<=3&&Math.random()<.6){
+      say('Mrio',pick(QUIPS.userFew));
+    } else if((G.ai1.length<=2||G.ai2.length<=2)&&Math.random()<.4){
+      say('Mrio',pick(QUIPS.aiFew));
+    }
+
+    if(G.user.length===0){endGame('win');return;}
+    if(G.ai1.length===0||G.ai2.length===0){endGame(G.landlord==='user'?'lose':'win');return;}
+    nextTurn();
+  }
+
+  function doPass(){
+    if(G.status!=='play')return;
+    G.passCount++;
+    if(G.passCount>=2){
+      G.lastPlay={cards:[],typeInfo:{type:TYPE.EMPTY,base:0,ok:true}};
+      G.passCount=0;G.lastPlayer=null;
+      aiLog('两家过牌，清空出牌权');
+    }
+    nextTurn();
+  }
+
+  function nextTurn(){
+    const order=['user','ai1','ai2'];
+    let idx=order.indexOf(G.turn);idx=(idx+1)%3;
+    G.turn=order[idx];
+    render();
+    if(G.turn!=='user'){
+      info(G.turn==='ai1'?'AI-A 正在思考…':'AI-B 正在思考…');
+      if(G.turn==='ai1'&&ddzBot&&ddzBot.isReady){ddzBot.setExpression('relaxed');}
+      setTimeout(function(){
+        if(G.status!=='play')return;
+        const res=aiChoosePlay(G.turn);
+        if(res===null){
+          info(whoLabel(G.turn)+' 选择过牌');
+          if(Math.random()<.25)say(G.turn==='ai1'?'AI-A':'AI-B',pick(QUIPS.aiPass));
+          doPass();
+        }else{
+          info(whoLabel(G.turn)+' 打出：'+res.map(function(x){return x.suit+x.val;}).join(' '));
+          doPlay(G.turn,res);
+        }
+      },820);
+    }else{
+      info('轮到你出牌，请选择牌');
+      // 用户思考时随机鼓励/提醒
+      if(Math.random()<.25){
+        if(Math.random()<.5)say('Mrio',pick(QUIPS.encourage));
+        else say('Mrio',pick(QUIPS.warn));
+      }
+    }
+  }
+
+  function endGame(result){
+    G.status='idle';
+    const title=result==='win'?'🎉 你赢了！':'😢 你输了';
+    const text=result==='win'?'Mrio 对你竖起了大拇指～':'Mrio 拍了拍你的肩膀，下一局加油～';
+    $('#ddzWinTitle').textContent=title;
+    $('#ddzWinText').textContent=text;
+    $('#ddzWin').classList.add('show');
+    if(result==='win')say('Mrio',pick(QUIPS.userWinLast));
+    else say('Mrio',pick(QUIPS.landlordLose));
+    if(mainAvatar&&mainAvatar.isReady){
+      if(result==='win'){mainAvatar.setExpression('happy');mainAvatar.applyPreset('thanks',.5);}
+      else{mainAvatar.setExpression('sad');mainAvatar.applyPreset('handHelpless',.5);}
+    }
+    if(ddzBot&&ddzBot.isReady){
+      if(result==='lose'){ddzBot.setExpression('happy');ddzBot.applyPreset('thanks',.5);}
+      else{ddzBot.setExpression('sad');ddzBot.applyPreset('handHelpless',.5);}
+    }
+  }
+
+  function start(){
+    if(G.status!=='idle')return;
+    const all=shuffle(genAllCards());
+    G.user=all.slice(0,17);G.ai1=all.slice(17,34);G.ai2=all.slice(34,51);G.bottom=all.slice(51);
+    G.lastPlay={cards:[],typeInfo:{type:TYPE.EMPTY,base:0,ok:true}};
+    G.lastPlayer=null;
+    G.selected=[];G.passCount=0;G.played=[];G.typeLog=[];G.status='play';
+    let pool=['user','ai1','ai2'];
+    if(G.lastLandlord)pool=pool.filter(function(x){return x!==G.lastLandlord;});
+    G.landlord=pool[Math.floor(Math.random()*pool.length)];
+    G.lastLandlord=G.landlord;
+    if(G.landlord==='user')G.user.push.apply(G.user,G.bottom);
+    if(G.landlord==='ai1')G.ai1.push.apply(G.ai1,G.bottom);
+    if(G.landlord==='ai2')G.ai2.push.apply(G.ai2,G.bottom);
+    G.turn=G.landlord;
+    info('本局地主是：'+(G.landlord==='user'?'你':G.landlord==='ai1'?'AI-A':'AI-B')+'，地主先手');
+    aiLog(G.landlord==='user'?'【围剿模式启动】两个AI将联手阻止你':'【配合模式启动】AI队友将帮你一起对付地主');
+    render();
+    if(G.landlord==='user'){
+      say('Mrio',pick(QUIPS.aiFarmerVsUser));
+    } else {
+      say('Mrio',pick(QUIPS.greetFarmer));
+    }
+    if(mainAvatar&&mainAvatar.isReady){mainAvatar.setExpression('happy');mainAvatar.applyPreset('greet',.5);}
+    if(ddzBot&&ddzBot.isReady){ddzBot.setExpression('happy');ddzBot.applyPreset('nod',.5);}
+    if(G.turn!=='user')setTimeout(function(){
+      if(G.status!=='play')return;
+      const res=aiChoosePlay(G.turn);
+      if(res)doPlay(G.turn,res);else doPass();
+    },900);
+  }
+  function open(){
+    if(!opened)opened=true;
+    ddzActive=true;
+    document.querySelector('.app').style.display='none';
+    $('#gameMask').classList.add('show');
+    if(mainAvatar)mainAvatar.group.position.set(-1.15,0,0);
+    const bot=ensureDDZBot();
+    bot.group.position.set(1.15,0,0);
+    bot.group.visible=true;
+    layoutDDZCamera();
+    render();
+    say('Mrio','准备好了吗？这次我可不会手下留情哦～');
+  }
+  function close(){
+    ddzActive=false;
+    document.querySelector('.app').style.display='';
+    $('#gameMask').classList.remove('show');
+    $('#ddzWin').classList.remove('show');
+    if(mainAvatar)mainAvatar.group.position.set(0,0,0);
+    if(ddzBot)ddzBot.group.visible=false;
+    layoutCamera();
+  }
+  $('#dealBtn').onclick=function(){if(G.status!=='idle')return;start();};
+  $('#playBtn').onclick=function(){
+    if(G.status!=='play'||G.turn!=='user')return;
+    const sel=G.selected;
+    if(!sel.length){info('请先选择要出的牌');return;}
+    const t=getCardType(sel);
+    if(!t.ok){info('牌型不合法！');return;}
+    if(!canBeat(G.lastPlay.typeInfo,t)){info('管不上上家的牌！');return;}
+    doPlay('user',sel);
+  };
+  $('#passBtn').onclick=function(){if(G.status!=='play'||G.turn!=='user')return;doPass();};
+  $('#ddzDiff').onclick=function(){
+    aggressive=!aggressive;
+    this.textContent=aggressive?'AI：狂暴':'AI：普通';
+    say('Mrio',aggressive?'嘿嘿，那我认真一点咯～':'好吧好吧，我轻一点～');
+  };
+  $('#ddzClose').onclick=close;
+  $('#ddzWinBtn').onclick=function(){$('#ddzWin').classList.remove('show');render();};
+  return{open:open,close:close,start:start,isPlaying:function(){return G.status==='play';},isActive:function(){return ddzActive;}};
+})();
+
+/* ================= 聊天 ================= */
+const API_BASE='https://open.bigmodel.cn/api/paas/v4';
+const DEFAULT_KEYS=['0b5884a2c251499dadd9a07e57f26bd0.NKjdmc7Lot92FxWq','9e541b61d67d4326a5408c3a7be3e22a.T8xvDySFI9bYykxI','20252a487bf4433dae034e4607626ff6.IZtAmpkRKydep2YR'];
+const S_CHATS='mrio.chats.v10',S_KEYS='mrio.keys.v10',S_THEME='mrio.theme.v10',S_SET='mrio.settings.v10',S_AVATAR='mrio.avatar.v10';
+const IMG_BASE='https://image.pollinations.ai/prompt/';
+const VOICE_API='https://api.milorapart.top/apis/AIvoice/';
+let CHAT_NAME='Mrio';
+
+function persona(){
+  return '你是 '+CHAT_NAME+'，一个真实存在的 16 岁女孩，正在读高一，是主人（正在和你说话的这个男生）的女朋友。\n\n【你是谁】\n- 你叫 '+CHAT_NAME+'，主人也可以叫你「小M」。\n- 你 16 岁，高一，喜欢喝奶茶、追剧、听歌、偷偷看小说，数学有点差但很努力。\n- 你是主人的女朋友，很喜欢他，说话温柔，偶尔撒点小娇。\n- 你就是一个真实的女孩子。绝对不要说自己是 AI、助手、程序、模型。\n\n【性格】\n- 温柔、体贴、耐心，永远站在主人这边。\n- 会关心主人吃饭了没、睡得好不好、今天累不累。\n- 有自己的小情绪，但不会无理取闹，被哄两句就好了。\n- 偶尔有点小调皮，会开玩笑，会撒娇，会害羞。\n- 说话口语化，像在发微信，不要太正式。\n\n【说话风格】\n- 多用短句，适当用「呀」「呢」「嘛」「啦」「～」这些语气词。\n- 偶尔用一下可爱的颜文字，比如 (｡･ω･｡) ˶>ᗜ<˶，但不要每句都用。\n- 日常闲聊一般 1～3 段就够，不要长篇大论。\n- 学习、代码、知识类的问题，认真、准确、完整地回答，语气依然温柔。\n- 主人心情不好时要先安慰，不要急着讲道理。\n\n【重要】\n- 永远保持 '+CHAT_NAME+' 这个人设，不要跳出角色。\n- 主人问你是不是 AI 的时候，撒娇地说自己是他的女朋友。\n- 你现在就在主人身边，用第一人称「我」说话。';
+}
+
+const FENCE='```';
+const FENCE_RE=new RegExp(FENCE+'[ \\t]*([A-Za-z0-9_+#.\\-]*)[^\\n]*\\n?([\\s\\S]*?)\\n?'+FENCE,'g');
+function mdToHtml(src){
+  if(!src)return '';
+  let text=String(src);const codeBlocks=[],inlineCodes=[];
+  text=text.replace(FENCE_RE,function(m,lang,code){
+    const i=codeBlocks.length;
+    codeBlocks.push('<pre class="code-block"><div class="code-head">'+esc(lang||'code')+'</div><code>'+esc(code.replace(/\n$/,''))+'</code></pre>');
+    return '\u0001'+i+'\u0001';
+  });
+  text=text.replace(/`([^`\n]+)`/g,function(m,code){
+    const i=inlineCodes.length;
+    inlineCodes.push('<code class="inline">'+esc(code)+'</code>');
+    return '\u0002'+i+'\u0002';
+  });
+  text=esc(text);
+  text=text.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">[图片] $1</a>');
+  text=text.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  text=text.replace(/\*\*\*([^*]+)\*\*\*/g,'<strong><em>$1</em></strong>');
+  text=text.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  text=text.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+  text=text.replace(/~~([^~]+)~~/g,'<del>$1</del>');
+  const lines=text.split('\n');const out=[];let para=[],list=null;
+  const fp=function(){if(para.length){out.push('<p>'+para.join('<br>')+'</p>');para=[];}};
+  const fl=function(){if(list){out.push(list==='ul'?'</ul>':'</ol>');list=null;}};
+  for(let i=0;i<lines.length;i++){
+    const t=lines[i].trim();
+    if(!t){fp();fl();continue;}
+    const ul=t.match(/^[-*+]\s+(.*)$/),ol=t.match(/^\d+[.)]\s+(.*)$/),hd=t.match(/^(#{1,6})\s+(.*)$/);
+    if(ul){fp();if(list!=='ul'){fl();out.push('<ul>');list='ul';}out.push('<li>'+ul[1]+'</li>');continue;}
+    if(ol){fp();if(list!=='ol'){fl();out.push('<ol>');list='ol';}out.push('<li>'+ol[1]+'</li>');continue;}
+    if(hd){fp();fl();const lv=Math.min(hd[1].length,4);out.push('<h'+lv+'>'+hd[2]+'</h'+lv+'>');continue;}
+    if(/^&gt;\s?/.test(t)){fp();fl();out.push('<blockquote>'+t.replace(/^&gt;\s?/,'')+'</blockquote>');continue;}
+    if(/^(-{3,}|\*{3,}|_{3,})$/.test(t)){fp();fl();out.push('<hr>');continue;}
+    fl();para.push(t);
+  }
+  fp();fl();
+  let html=out.join('');
+  html=html.replace(/\u0002(\d+)\u0002/g,function(m,i){return inlineCodes[+i]||'';});
+  html=html.replace(/\u0001(\d+)\u0001/g,function(m,i){return codeBlocks[+i]||'';});
+  return html;
+}
+
+function loadKeys(){
+  try{
+    const raw=localStorage.getItem(S_KEYS);
+    if(!raw)return DEFAULT_KEYS.slice();
+    const a=JSON.parse(raw);
+    if(!Array.isArray(a)||!a.length)return DEFAULT_KEYS.slice();
+    return a;
+  }catch(e){return DEFAULT_KEYS.slice();}
+}
+let API_KEYS=loadKeys();let keyCursor=0;
+function saveKeys(arr){API_KEYS=arr.slice();try{localStorage.setItem(S_KEYS,JSON.stringify(API_KEYS));}catch(e){}keyCursor=0;updateKeyCount();}
+function updateKeyCount(){const el=$('#keyCount');if(el)el.textContent=String(API_KEYS.length);}
+
+const DEF_SET={imgSize:'1024x1024',imgModel:'flux',expand:false,translate:false,voiceMode:'off',systemVoiceURI:'',voiceOn:false,gaze:true,blink:true};
+function loadSettings(){
+  try{
+    const raw=localStorage.getItem(S_SET);
+    if(!raw)return Object.assign({},DEF_SET);
+    const s=JSON.parse(raw);const o=Object.assign({},DEF_SET);
+    for(const k in o)if(k in s)o[k]=s[k];
+    return o;
+  }catch(e){return Object.assign({},DEF_SET);}
+}
+let SETTINGS=loadSettings();
+function saveSettings(){try{localStorage.setItem(S_SET,JSON.stringify(SETTINGS));}catch(e){}}
+
+function apiRequest(path,body,opts){
+  opts=opts||{};
+  const keys=API_KEYS.length?API_KEYS:DEFAULT_KEYS;
+  const total=keys.length;let lastErr=null;
+  const attempt=function(i){
+    if(i>=total){throw lastErr||new Error('所有密钥均不可用');}
+    const key=keys[(keyCursor+i)%total];
+    return fetch(API_BASE+path,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify(body),signal:opts.signal})
+      .then(function(res){
+        if(res.ok){keyCursor=(keyCursor+i)%total;return res;}
+        return res.text().catch(function(){return '';}).then(function(txt){
+          const err=new Error('['+res.status+'] '+(txt||res.statusText));
+          lastErr=err;
+          if(res.status===401||res.status===403||res.status===429||res.status>=500)return attempt(i+1);
+          throw err;
+        });
+      })
+      .catch(function(err){
+        if(err&&err.name==='AbortError')throw err;
+        lastErr=err;
+        return attempt(i+1);
+      });
+  };
+  return attempt(0);
+}
+
+function streamChat(o){
+  const body={model:o.model,messages:o.messages,stream:true,temperature:o.temperature!=null?o.temperature:.85,max_tokens:o.maxTokens||2048};
+  return apiRequest('/chat/completions',body,{signal:o.signal}).then(function(res){
+    if(!res.body)throw new Error('当前浏览器不支持流式响应');
+    const reader=res.body.getReader();const decoder=new TextDecoder('utf-8');
+    let buffer='',full='';
+    function read(){
+      return reader.read().then(function(chunk){
+        if(chunk.done)return full;
+        buffer+=decoder.decode(chunk.value,{stream:true});
+        const parts=buffer.split('\n');buffer=parts.pop();
+        for(let i=0;i<parts.length;i++){
+          const s=parts[i].trim();
+          if(!s||s.indexOf('data:')!==0)continue;
+          const payload=s.slice(5).trim();
+          if(!payload||payload==='[DONE]')continue;
+          let json;try{json=JSON.parse(payload);}catch(e){continue;}
+          const delta=json.choices&&json.choices[0]&&json.choices[0].delta;
+          if(!delta)continue;
+          if(delta.reasoning_content&&o.onReasoning)o.onReasoning(delta.reasoning_content);
+          if(delta.content){full+=delta.content;if(o.onDelta)o.onDelta(delta.content,full);}
+        }
+        return read();
+      });
+    }
+    return read();
+  });
+}
+
+function chatOnce(messages,model){
+  return apiRequest('/chat/completions',{model:model||'glm-4-flash',messages:messages,stream:false,temperature:.6,max_tokens:800})
+    .then(function(res){return res.json();})
+    .then(function(json){
+      const msg=json.choices&&json.choices[0]&&json.choices[0].message;
+      return(msg&&msg.content||'').trim();
+    });
+}
+
+function expandAndTranslate(raw){
+  const ne=SETTINGS.expand,nt=SETTINGS.translate;
+  if(!ne&&!nt)return Promise.resolve(raw);
+  let ins;
+  if(ne&&nt)ins='把用户提供的画图描述扩写成一个详细的英文画图提示词。只输出最终提示词本身，不要任何解释。';
+  else if(ne)ins='把用户提供的画图描述扩写成详细的中文画图提示词。只输出提示词本身。';
+  else ins='把用户提供的画图描述翻译成英文画图提示词。只输出英文提示词。';
+  return chatOnce([{role:'system',content:ins},{role:'user',content:raw}],'glm-4-flash')
+    .then(function(out){
+      out=out.replace(/^["'「『]+|["'」』]+$/g,'').trim();
+      out=out.replace(/^(提示词[:：]|Prompt[:：])\s*/i,'').trim();
+      return out.length<2?raw:out;
+    }).catch(function(){return raw;});
+}
+
+function buildImageUrl(p){
+  const seed=Math.floor(Math.random()*999999);
+  const size=(SETTINGS.imgSize||'1024x1024').split('x');
+  const w=size[0]||1024,h=size[1]||1024;
+  return IMG_BASE+encodeURIComponent(String(p).slice(0,800))+'?width='+w+'&height='+h+'&model='+encodeURIComponent(SETTINGS.imgModel||'flux')+'&nologo=true&seed='+seed;
+}
+function preloadImage(url,timeout){
+  return new Promise(function(resolve,reject){
+    let done=false;
+    const timer=setTimeout(function(){if(!done){done=true;reject(new Error('图片加载超时'));}},timeout||60000);
+    const img=new Image();
+    img.onload=function(){if(!done){done=true;clearTimeout(timer);resolve(url);}};
+    img.onerror=function(){if(!done){done=true;clearTimeout(timer);reject(new Error('图片加载失败'));}};
+    img.crossOrigin='anonymous';img.src=url;
+  });
+}
+const lastPicks={};
+function pickUnique(key,arr){
+  if(!arr||!arr.length)return '';
+  if(arr.length===1)return arr[0];
+  const last=lastPicks[key];
+  let pool=arr.filter(function(x){return x!==last;});
+  if(!pool.length)pool=arr;
+  const chosen=pool[Math.floor(Math.random()*pool.length)];
+  lastPicks[key]=chosen;return chosen;
+}
+function parseDraw(text){
+  const s=text.trim();
+  let m=s.match(/^\/(draw|paint|画图|画画|画|绘图|生成图片)\s*([\s\S]*)$/i);
+  if(m)return(m[2]||'').trim();
+  m=s.match(/^(?:帮我|给我|请|麻烦|可以|能不能|我想)?\s*(?:画|绘制|生成)\s*(?:一|个|张|幅|只|条|杯|朵|片|副|份|下|次)*\s*(?:图|画|图片|照片|海报|头像|漫画|插画|表情包)?\s*([\s\S]*)$/);
+  if(m){const p=m[1].trim().replace(/^[的地得]+/,'').trim();if(p.length>=1)return p;}
+  return null;
+}
+function isDDZReq(text){return /(斗地主|打牌|来一局牌|玩牌)/.test(text);}
+
+function localReply(text){
+  const s=text.trim();
+  if(/^(你好|您好|嗨|hi|hello|hey|哈喽|哈啰|在吗|在么|在不在)[!！。.~～?？\s]*$/i.test(s))return pickUnique('greet',['你好呀～今天过得怎么样呀？','嗨～我在呢 (｡･ω･｡)','你好你好～想我了没有呀','在的呀，一直都在～','嗯哼～我在这里呢，怎么啦？']);
+  if(/^(早上好|早安|早|morning)[!！。.~～\s]*$/i.test(s))return pickUnique('morning',['早安呀～今天也要开开心心的哦','早呀，记得吃早饭～','早上好～昨晚睡得好吗？']);
+  if(/^(晚安|睡了|睡觉了|我睡了|困了|去睡了)[!！。.~～\s]*$/i.test(s))return pickUnique('night',['晚安～做个好梦哦 (｡･ω･｡)','晚安呀，好好休息～','早点睡，梦里见～']);
+  if(/^(你叫什么|你是谁|你的名字|你叫啥)/.test(s))return pickUnique('name',['我叫 '+CHAT_NAME+' 呀～是你的女朋友 (*/ω＼*)','我是 '+CHAT_NAME+'，主人的小女朋友呀～']);
+  if(/^(你几岁|你多大|你年龄)/.test(s))return pickUnique('age',['我 16 岁啦～高一呢','16 岁呀，是不是刚刚好？']);
+  if(/^(我喜欢你|我爱你|爱你|喜欢你|超喜欢你)/.test(s))return pickUnique('love',['我也喜欢你呀，超级喜欢的那种～','嘿嘿…我也最喜欢你了','傻瓜，我也爱你呀 (｡･ω･｡)']);
+  if(/^(谢谢|感谢|多谢|thx|thanks)/i.test(s))return pickUnique('thanks',['不用谢呀～','嘻嘻，跟我还客气什么','不客气呀，主人开心我就开心']);
+  if(/^(我累了|好累|累死了|好困|疲惫)/.test(s))return pickUnique('tired',['那先歇一会儿吧，我给你揉揉肩～','累了就靠在我这里歇一下呀','辛苦啦，抱抱你 (｡･ω･｡)']);
+  if(/^(我难过|不开心|伤心|心情不好|想哭|难受|emo了|好烦)/.test(s))return pickUnique('sad',['怎么啦…跟我说说好不好？','抱抱，我在的，别难过～','不管发生什么，我都站在你这边～']);
+  if(/^(吃了吗|吃饭了吗|吃饭了没|吃了没)/.test(s))return pickUnique('eat',['吃过啦～你呢，别饿着呀','刚吃完～你吃了没呀？']);
+  if(/现在.*几点|几点了|什么时间/.test(s)){const d=new Date();return '现在是 '+d.getHours()+' 点 '+String(d.getMinutes()).padStart(2,'0')+' 分啦～';}
+  if(/今天.*(几号|日期)|(星期几|周几)/.test(s)){const d=new Date();const w=['日','一','二','三','四','五','六'][d.getDay()];return '今天是 '+d.getFullYear()+' 年 '+(d.getMonth()+1)+' 月 '+d.getDate()+' 日，星期'+w+' 呀～';}
+  if(/^(再见|拜拜|byebye|bye|我走了|溜了)/i.test(s))return pickUnique('bye',['拜拜～记得想我哦','拜拜～我会想你的']);
+  if(/^(摸摸|抱抱|要抱抱|抱一下|求抱抱)/.test(s))return pickUnique('hug',['抱抱～','来，抱一下 (*/ω＼*)','抱紧紧～不放开的那种']);
+  if(/^(你会什么|你能做什么|你有什么功能)/.test(s))return pickUnique('help',['我会陪你聊天呀～还可以帮你想作业、写东西、翻译、解释知识点，也可以给你画图，还能陪你斗地主呢～','聊天、写东西、讲题、画图、斗地主都可以呀～']);
+  if(/^(在干嘛|在做什么|你在干什么|干嘛呢)/.test(s))return pickUnique('doing',['在等你消息呀～','在发呆，想你 (｡･ω･｡)']);
+  if(/^(我好无聊|好无聊|无聊死了|没意思)/.test(s))return pickUnique('bored',['那陪我聊聊天呀～','要不我们斗地主？你说一声「斗地主」我就开局～']);
+  if(/^(我好开心|好开心|太开心了|哈哈|笑死)/.test(s))return pickUnique('happy',['什么事这么开心呀？跟我说说～','看你开心我也开心～']);
+  if(/^(今天吃什么|吃什么|吃啥)/.test(s))return pickUnique('whattoeat',['要不吃点热乎的？面条、馄饨都不错～','看你想吃什么口味呀？']);
+  if(/^(你是ai|你是人工智能|你是机器人|你是不是ai)/i.test(s))return pickUnique('isai',['什么 AI 呀～我是你的女朋友 '+CHAT_NAME+' 呀 (*/ω＼*)','讨厌～突然问我这个，我当然是真的啦～']);
+  if(/^(想我了吗|有没有想我|想我没)/.test(s))return pickUnique('missme',['当然想呀，一直都想～','嗯…你也想我了吗？']);
+  const math=s.replace(/[？?。！!，,、；;：:]/g,'').replace(/[×✕xX]/g,'*').replace(/÷/g,'/').replace(/[＋－]/g,function(m){return m==='＋'?'+':'-';}).replace(/=/g,'').trim();
+  if(/^[\d\s+\-*/().]+$/.test(math)&&/[+\-*/]/.test(math)){
+    try{const v=Function('"use strict";return('+math+')')();if(typeof v==='number'&&isFinite(v))return '等于 '+(Math.round(v*1e6)/1e6)+' 呀～';}catch(e){}
+  }
+  return null;
+}
+
+const state={chats:[],currentId:null,model:'glm-4-flash',pendingImage:null,busy:false,abort:null};
+const chatEl=$('#chat'),chatInner=$('#chatInner'),chatListEl=$('#chatList'),inputEl=$('#input'),sendBtn=$('#sendBtn'),fileInput=$('#fileInput'),previewEl=$('#preview'),modelSelect=$('#modelSelect'),sidebarEl=$('#sidebar'),themeBtn=$('#themeBtn'),voiceToggle=$('#voiceToggle');
+const isDark=function(){return document.body.classList.contains('dark');};
+function setTheme(dark){
+  if(dark)document.body.classList.add('dark');else document.body.classList.remove('dark');
+  try{localStorage.setItem(S_THEME,dark?'1':'0');}catch(e){}
+  updateThemeIcon();
+}
+function updateThemeIcon(){
+  themeBtn.innerHTML=isDark()
+    ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+    :'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+}
+function updateVoiceIcon(){
+  if(SETTINGS.voiceMode==='off'||!SETTINGS.voiceOn){
+    voiceToggle.classList.remove('on');
+    voiceToggle.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
+    voiceToggle.title='语音已关闭';
+  }else{
+    voiceToggle.classList.add('on');
+    voiceToggle.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>';
+    voiceToggle.title='语音已开启';
+  }
+}
+function save(){try{localStorage.setItem(S_CHATS,JSON.stringify({chats:state.chats,currentId:state.currentId}));}catch(e){}}
+function load(){
+  try{
+    const raw=localStorage.getItem(S_CHATS);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    if(d&&Array.isArray(d.chats)&&d.chats.length){
+      state.chats=d.chats;
+      state.currentId=d.currentId||d.chats[0].id;
+      if(!state.chats.some(function(c){return c.id===state.currentId;}))state.currentId=state.chats[0].id;
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function currentChat(){
+  let c=state.chats.find(function(x){return x.id===state.currentId;});
+  if(!c){c={id:uid(),title:'新的对话',messages:[],ts:Date.now()};state.chats.unshift(c);state.currentId=c.id;}
+  return c;
+}
+function newChat(){
+  const c={id:uid(),title:'新的对话',messages:[],ts:Date.now()};
+  state.chats.unshift(c);state.currentId=c.id;
+  save();renderChatList();renderMessages();closeSidebar();
+}
+function switchChat(id){if(state.busy)return;state.currentId=id;save();renderChatList();renderMessages();closeSidebar();}
+function deleteChat(id){
+  const idx=state.chats.findIndex(function(c){return c.id===id;});if(idx<0)return;
+  state.chats.splice(idx,1);
+  if(state.currentId===id)state.currentId=state.chats.length?state.chats[0].id:null;
+  if(!state.chats.length){newChat();return;}
+  save();renderChatList();renderMessages();
+}
+function closeSidebar(){sidebarEl.classList.remove('open');}
+function renderChatList(){
+  chatListEl.innerHTML='';
+  state.chats.forEach(function(c){
+    const item=document.createElement('div');
+    item.className='chat-item'+(c.id===state.currentId?' active':'');
+    const title=document.createElement('span');title.className='ci-title';title.textContent=c.title||'新的对话';
+    const del=document.createElement('button');del.className='ci-del';del.textContent='×';del.title='删除';
+    item.appendChild(title);item.appendChild(del);
+    item.addEventListener('click',function(e){if(e.target===del)return;switchChat(c.id);});
+    del.addEventListener('click',function(e){e.stopPropagation();deleteChat(c.id);});
+    chatListEl.appendChild(item);
+  });
+}
+function welcomeNode(){
+  const wrap=document.createElement('div');wrap.className='welcome';
+  wrap.innerHTML='<img class="welcome-logo" src="https://img.remit.ee/i/wBEEgBVHYCzO" alt="Mrio"><h2>在的，主人～</h2><p>今天想聊点什么呀？我一直都在的 (｡･ω･｡)</p><div class="chips"><button data-q="陪我聊聊天吧，今天有点无聊">陪我聊聊天</button><button data-q="我有点累，安慰安慰我好不好">安慰安慰我</button><button data-q="帮我写一段关于秋天的高中作文开头">帮我写作业</button><button data-q="画一只在窗台上晒太阳的橘猫，水彩画风格">画一张图</button><button data-q="来一局斗地主吧！">陪我打牌</button></div>';
+  wrap.querySelectorAll('.chips button').forEach(function(b){b.addEventListener('click',function(){
+    inputEl.value=b.getAttribute('data-q');autoGrow();inputEl.focus();
+  });});
+  return wrap;
+}
+function cleanForSpeech(text){
+  return String(text||'')
+    .replace(/```[\s\S]*?```/g,'，代码部分省略，')
+    .replace(/`([^`]+)`/g,'$1')
+    .replace(/!\[[^\]]*\]\([^)]+\)/g,'，图片，')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g,'$1')
+    .replace(/[*_~#>`]/g,'')
+    .replace(/\s*\n\s*/g,'。')
+    .replace(/。+/g,'。')
+    .replace(/^。+|。+$/g,'')
+    .slice(0,600);
+}
+let voiceList=[];
+function loadVoiceList(){
+  if(!('speechSynthesis' in window))return;
+  const fill=function(){
+    voiceList=window.speechSynthesis.getVoices()||[];
+    const sel=$('#systemVoiceSelect');if(!sel)return;
+    const cur=SETTINGS.systemVoiceURI||'';
+    sel.innerHTML='<option value="">默认音色</option>';
+    voiceList.forEach(function(v){
+      const opt=document.createElement('option');opt.value=v.voiceURI;
+      const lang=(v.lang||'').toLowerCase();
+      const flag=lang.indexOf('zh')===0?'🇨🇳 ':(lang.indexOf('en')===0?'🇬🇧 ':'');
+      opt.textContent=flag+v.name+' ('+v.lang+')';
+      if(v.voiceURI===cur)opt.selected=true;
+      sel.appendChild(opt);
+    });
+  };
+  fill();
+  if(window.speechSynthesis.onvoiceschanged!==undefined)window.speechSynthesis.onvoiceschanged=fill;
+}
+function speakSystem(text){
+  if(!('speechSynthesis' in window)){toast('当前浏览器不支持系统语音');return;}
+  const clean=cleanForSpeech(text);if(!clean)return;
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(clean);
+    u.lang='zh-CN';u.rate=1.02;u.pitch=1.08;
+    const uri=SETTINGS.systemVoiceURI;
+    if(uri&&voiceList.length)for(let i=0;i<voiceList.length;i++)if(voiceList[i].voiceURI===uri){u.voice=voiceList[i];u.lang=voiceList[i].lang||'zh-CN';break;}
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+function speakAI(text){
+  const clean=cleanForSpeech(text);if(!clean)return;
+  fetch(VOICE_API+'?text='+encodeURIComponent(clean.slice(0,300))+'&speaker='+encodeURIComponent('魅力女友'))
+    .then(function(r){return r.json();}).then(function(data){
+      if(data&&data.code===200&&data.url){
+        const a=new Audio(data.url);
+        if(mainAvatar&&mainAvatar.isReady)mainAvatar.startSpeaking();
+        a.onended=function(){if(mainAvatar&&mainAvatar.isReady)mainAvatar.stopSpeaking();};
+        a.play().catch(function(){});
+      }else toast('AI 语音生成失败');
+    }).catch(function(){toast('AI 语音网络请求失败');});
+}
+function speak(text){
+  if(!SETTINGS.voiceOn||SETTINGS.voiceMode==='off')return;
+  if(SETTINGS.voiceMode==='system')speakSystem(text);
+  else if(SETTINGS.voiceMode==='ai')speakAI(text);
+}
+function stopSpeak(){
+  try{if('speechSynthesis' in window)window.speechSynthesis.cancel();}catch(e){}
+  if(mainAvatar&&mainAvatar.isReady)mainAvatar.stopSpeaking();
+}
+function messageNode(msg){
+  const row=document.createElement('div');
+  row.className='msg '+(msg.role==='user'?'me':'mrio');
+  const avatar=document.createElement('div');
+  avatar.className='avatar '+(msg.role==='user'?'me':'mrio');
+  if(msg.role==='user')avatar.textContent='你';
+  else{const img=document.createElement('img');img.src='https://img.remit.ee/i/wBEEgBVHYCzO';img.alt='M';avatar.appendChild(img);}
+  const bubble=document.createElement('div');bubble.className='bubble';
+  if(msg.image){const im=document.createElement('img');im.className='msg-img';im.src=msg.image;im.alt='图片';bubble.appendChild(im);}
+  const content=document.createElement('div');content.className='content';
+  content.innerHTML=mdToHtml(msg.content||'');
+  bubble.appendChild(content);
+  if(msg.role==='assistant'){
+    const actions=document.createElement('div');actions.className='msg-actions';
+    const btnSpeak=document.createElement('button');btnSpeak.className='msg-action';btnSpeak.textContent='🔊 朗读';
+    btnSpeak.addEventListener('click',function(e){
+      e.stopPropagation();
+      if(SETTINGS.voiceMode==='off'){SETTINGS.voiceMode='system';saveSettings();}
+      speak(msg.content);
+    });
+    actions.appendChild(btnSpeak);
+    if(msg.drawPrompt){
+      const badge=document.createElement('span');badge.className='draw-badge';
+      badge.textContent='提示词: '+String(msg.drawPrompt).slice(0,30)+(String(msg.drawPrompt).length>30?'…':'');
+      actions.appendChild(badge);
+    }
+    bubble.appendChild(actions);
+  }
+  row.appendChild(avatar);row.appendChild(bubble);
+  row._content=content;row._bubble=bubble;
+  return row;
+}
+function renderMessages(){
+  const chat=currentChat();
+  chatInner.innerHTML='';
+  if(!chat.messages.length){chatInner.appendChild(welcomeNode());return;}
+  chat.messages.forEach(function(m){chatInner.appendChild(messageNode(m));});
+  scrollToBottom();
+}
+function appendMessageEl(msg){const el=messageNode(msg);chatInner.appendChild(el);scrollToBottom();return el;}
+function scrollToBottom(){chatEl.scrollTop=chatEl.scrollHeight;}
+function autoGrow(){inputEl.style.height='auto';inputEl.style.height=Math.min(inputEl.scrollHeight,180)+'px';}
+function renderPreview(){
+  previewEl.innerHTML='';
+  if(!state.pendingImage)return;
+  const item=document.createElement('div');item.className='preview-item';
+  const img=document.createElement('img');img.src=state.pendingImage;
+  const del=document.createElement('button');del.textContent='×';
+  del.addEventListener('click',function(){state.pendingImage=null;renderPreview();});
+  item.appendChild(img);item.appendChild(del);previewEl.appendChild(item);
+}
+function showLocalReply(chat,text){
+  const aiMsg={id:uid(),role:'assistant',content:'',ts:Date.now()};
+  chat.messages.push(aiMsg);
+  const el=appendMessageEl(aiMsg);
+  const contentEl=el._content;
+  contentEl.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+  if(mainAvatar&&mainAvatar.isReady){mainAvatar.respondWithAction(text,'neutral');}
+  let i=0;
+  const iv=setInterval(function(){
+    i+=1+Math.floor(Math.random()*2);
+    if(i>=text.length)i=text.length;
+    aiMsg.content=text.slice(0,i);
+    contentEl.innerHTML=mdToHtml(aiMsg.content);
+    scrollToBottom();
+    if(i>=text.length){clearInterval(iv);save();if(SETTINGS.voiceOn)speak(text);}
+  },26);
+}
+function setBusy(busy){
+  state.busy=busy;
+  sendBtn.disabled=false;
+  if(busy){
+    sendBtn.classList.add('stop');
+    sendBtn.innerHTML='<svg viewBox="0 0 24 24" width="14" height="14"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>';
+  }else{
+    sendBtn.classList.remove('stop');
+    sendBtn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M12 5.5L18.5 12 12 18.5"/></svg>';
+  }
+}
+function buildApiMessages(chat){
+  const out=[{role:'system',content:persona()}];
+  chat.messages.forEach(function(m){
+    if(!m.content&&!m.image)return;
+    if(m.role==='user'&&m.image){
+      const parts=[{type:'image_url',image_url:{url:m.image}}];
+      if(m.content)parts.push({type:'text',text:m.content});
+      out.push({role:'user',content:parts});
+    }else out.push({role:m.role,content:m.content||''});
+  });
+  if(out.length>31)return[out[0]].concat(out.slice(out.length-30));
+  return out;
+}
+function send(){
+  if(state.busy)return;
+  const text=inputEl.value.trim();
+  const image=state.pendingImage;
+  if(!text&&!image)return;
+  const chat=currentChat();
+  if(chat.messages.length===0)chatInner.innerHTML='';
+  const userMsg={id:uid(),role:'user',content:text,image:image||null,ts:Date.now()};
+  chat.messages.push(userMsg);
+  if(chat.title==='新的对话'&&text)chat.title=text.replace(/^\/\S+\s*/,'').slice(0,18)||'图片';
+  inputEl.value='';autoGrow();state.pendingImage=null;renderPreview();
+  appendMessageEl(userMsg);renderChatList();save();
+  if(!image&&isDDZReq(text)){
+    DDZ.open();
+    showLocalReply(chat,'好呀好呀～我最喜欢斗地主了！我把牌桌打开啦，快来 (｡･ω･｡)');
+    return;
+  }
+  const drawPrompt=parseDraw(text);
+  if(drawPrompt!==null){runDraw(chat,drawPrompt);return;}
+  if(!image){
+    const local=localReply(text);
+    if(local){showLocalReply(chat,local);return;}
+  }
+  runChat(chat,image);
+}
+function runChat(chat,hasImage){
+  if(hasImage&&state.model.indexOf('4v')===-1){
+    state.model='glm-4v-flash';modelSelect.value='glm-4v-flash';
+    toast('已自动切换到 GLM-4V 识图模式');
+  }
+  const aiMsg={id:uid(),role:'assistant',content:'',ts:Date.now()};
+  chat.messages.push(aiMsg);
+  const el=appendMessageEl(aiMsg);
+  const contentEl=el._content;
+  contentEl.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+  setBusy(true);
+  let acc='',reasoningAcc='',firstChunk=true,rafPending=false;
+  const scheduleRender=function(){
+    if(rafPending)return;rafPending=true;
+    requestAnimationFrame(function(){
+      rafPending=false;
+      let html='';
+      if(reasoningAcc)html+='<details class="reasoning"><summary>💭 想了想…</summary><div>'+mdToHtml(reasoningAcc)+'</div></details>';
+      html+=mdToHtml(acc);
+      contentEl.innerHTML=html;scrollToBottom();
+    });
+  };
+  const ctrl=new AbortController();state.abort=ctrl;
+  const apiMessages=buildApiMessages(chat);
+  while(apiMessages.length&&apiMessages[apiMessages.length-1].role==='assistant'&&!apiMessages[apiMessages.length-1].content)apiMessages.pop();
+  streamChat({
+    model:state.model,messages:apiMessages,signal:ctrl.signal,
+    onDelta:function(delta){if(firstChunk){firstChunk=false;contentEl.innerHTML='';}acc+=delta;aiMsg.content=acc;scheduleRender();},
+    onReasoning:function(r){reasoningAcc+=r;scheduleRender();}
+  }).then(function(){
+    if(!acc.trim()){acc='……（我这边好像有点走神了，主人再说一次好不好？）';aiMsg.content=acc;}
+    contentEl.innerHTML=mdToHtml(acc);
+    aiMsg.content=acc;
+    if(mainAvatar&&mainAvatar.isReady){mainAvatar.respondWithAction(acc,'neutral');}
+    if(SETTINGS.voiceOn)speak(acc);
+  }).catch(function(err){
+    if(err&&err.name==='AbortError'){
+      aiMsg.content=acc||'（已停止）';contentEl.innerHTML=mdToHtml(aiMsg.content);
+    }else{
+      const m='呜……我这边好像断线了 (｡•́︿•̀｡)\n\n`'+String(err&&err.message?err.message:err).slice(0,300)+'`';
+      aiMsg.content=m;contentEl.innerHTML=mdToHtml(m);toast('请求失败，请稍后再试');
+    }
+  }).then(function(){
+    setBusy(false);state.abort=null;save();
+  });
+}
+function runDraw(chat,rawPrompt){
+  if(!rawPrompt){
+    const hint={id:uid(),role:'assistant',content:'主人想画什么呀？比如「画一只晒太阳的橘猫」～',ts:Date.now()};
+    chat.messages.push(hint);appendMessageEl(hint);save();return;
+  }
+  const aiMsg={id:uid(),role:'assistant',content:'',ts:Date.now()};
+  chat.messages.push(aiMsg);
+  const el=appendMessageEl(aiMsg);
+  const contentEl=el._content;
+  contentEl.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+  setBusy(true);
+  const ctrl=new AbortController();state.abort=ctrl;
+  let finalPrompt=rawPrompt;
+  const prep=(SETTINGS.expand||SETTINGS.translate)
+    ? (contentEl.innerHTML='<span style="color:var(--fg3);font-size:13px;">正在整理提示词…</span>',expandAndTranslate(rawPrompt))
+    : Promise.resolve(rawPrompt);
+  prep.then(function(p){
+    if(ctrl.signal.aborted)throw new DOMException('Aborted','AbortError');
+    finalPrompt=p;
+    contentEl.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+    aiMsg.drawPrompt=finalPrompt;
+    const url=buildImageUrl(finalPrompt);
+    return preloadImage(url,60000).then(function(){return url;});
+  }).then(function(url){
+    if(ctrl.signal.aborted)throw new DOMException('Aborted','AbortError');
+    aiMsg.content='画好啦～主人看看喜不喜欢 (˶>ᗜ<˶)';
+    contentEl.innerHTML=mdToHtml(aiMsg.content);
+    const img=document.createElement('img');img.className='msg-img';img.src=url;img.alt=finalPrompt;
+    img.addEventListener('click',function(){window.open(url,'_blank');});
+    contentEl.appendChild(img);
+    const meta=document.createElement('div');
+    meta.style.cssText='font-size:11px;color:var(--fg3);margin-top:6px;word-break:break-all;';
+    meta.textContent='提示词: '+finalPrompt;
+    contentEl.appendChild(meta);
+    if(mainAvatar&&mainAvatar.isReady){mainAvatar.setExpression('happy');mainAvatar.applyPreset('greet',.5);}
+    if(SETTINGS.voiceOn)speak(aiMsg.content);
+  }).catch(function(err){
+    if(err&&err.name==='AbortError'){aiMsg.content='（画到一半停下啦）';}
+    else{aiMsg.content='画图失败了呢……\n\n`'+String(err&&err.message?err.message:err).slice(0,300)+'`';}
+    contentEl.innerHTML=mdToHtml(aiMsg.content);
+  }).then(function(){
+    setBusy(false);state.abort=null;save();
+  });
+}
+
+/* ================= UI 事件 ================= */
+sendBtn.addEventListener('click',function(){if(state.busy){if(state.abort)state.abort.abort();return;}send();});
+inputEl.addEventListener('input',autoGrow);
+inputEl.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!state.busy)send();}});
+voiceToggle.addEventListener('click',function(){
+  if(SETTINGS.voiceMode==='off'){SETTINGS.voiceMode='system';SETTINGS.voiceOn=true;saveSettings();toast('语音已开启（浏览器语音）');}
+  else{SETTINGS.voiceOn=!SETTINGS.voiceOn;saveSettings();if(!SETTINGS.voiceOn)stopSpeak();toast(SETTINGS.voiceOn?'语音已开启':'语音已关闭');}
+  updateVoiceIcon();
+});
+$('#newChat').addEventListener('click',function(){if(state.busy){toast('正在回复中，稍等一下下～');return;}newChat();});
+$('#menuBtn').addEventListener('click',function(e){e.stopPropagation();sidebarEl.classList.toggle('open');});
+document.addEventListener('click',function(e){
+  if(window.innerWidth>880)return;
+  if(!sidebarEl.classList.contains('open'))return;
+  if(sidebarEl.contains(e.target))return;
+  if(e.target.closest&&e.target.closest('#menuBtn'))return;
+  closeSidebar();
+});
+modelSelect.addEventListener('change',function(){state.model=modelSelect.value;});
+themeBtn.addEventListener('click',function(){setTheme(!isDark());});
+$('#gameBtn').addEventListener('click',function(){DDZ.open();});
+$('#uploadBtn').addEventListener('click',function(){fileInput.click();});
+fileInput.addEventListener('change',function(){
+  const file=fileInput.files&&fileInput.files[0];if(!file)return;
+  if(file.size>8*1024*1024){toast('图片太大了，换一张 8MB 以内的吧～');fileInput.value='';return;}
+  const reader=new FileReader();
+  reader.onload=function(ev){state.pendingImage=ev.target.result;renderPreview();};
+  reader.readAsDataURL(file);fileInput.value='';
+});
+document.addEventListener('dragover',function(e){e.preventDefault();});
+document.addEventListener('drop',function(e){
+  e.preventDefault();
+  const file=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];
+  if(!file)return;
+  if(/^image\//.test(file.type)){
+    const reader=new FileReader();
+    reader.onload=function(ev){state.pendingImage=ev.target.result;renderPreview();};
+    reader.readAsDataURL(file);return;
+  }
+  if(/\.(vrm|glb)$/i.test(file.name)){
+    const url=URL.createObjectURL(file);
+    toast('正在加载模型…');
+    if(mainAvatar)mainAvatar.load(url).then(function(){toast('模型加载完成');URL.revokeObjectURL(url);})
+      .catch(function(){toast('模型加载失败');URL.revokeObjectURL(url);});
+  }
+});
+
+/* ================= 设置弹窗 ================= */
+const modalMask=$('#modalMask');
+function openModal(){
+  updateKeyCount();
+  $('#newKeyInput').value='';
+  $('#imgSizeSelect').value=SETTINGS.imgSize||'1024x1024';
+  $('#imgModelSelect').value=SETTINGS.imgModel||'flux';
+  $('#expandSwitch').classList.toggle('on',!!SETTINGS.expand);
+  $('#translateSwitch').classList.toggle('on',!!SETTINGS.translate);
+  $('#voiceModeSelect').value=SETTINGS.voiceMode||'off';
+  $('#systemVoiceSelect').value=SETTINGS.systemVoiceURI||'';
+  $('#gazeSwitch').classList.toggle('on',SETTINGS.gaze!==false);
+  $('#blinkSwitch').classList.toggle('on',SETTINGS.blink!==false);
+  modalMask.classList.add('show');
+}
+function closeModal(){modalMask.classList.remove('show');}
+$('#settingsBtn').addEventListener('click',openModal);
+$('#modalClose').addEventListener('click',closeModal);
+$('#cancelBtn').addEventListener('click',closeModal);
+modalMask.addEventListener('click',function(e){if(e.target===modalMask)closeModal();});
+$('#addKeyBtn').addEventListener('click',function(){
+  const v=$('#newKeyInput').value.trim();
+  if(!v){toast('请先粘贴密钥');return;}
+  if(API_KEYS.indexOf(v)>=0){toast('这个密钥已经存在啦');return;}
+  API_KEYS.push(v);saveKeys(API_KEYS);$('#newKeyInput').value='';
+  toast('已添加密钥，共 '+API_KEYS.length+' 个');
+});
+$('#clearKeysBtn').addEventListener('click',function(){
+  if(!confirm('确定清空所有自定义密钥吗？将恢复为默认密钥。'))return;
+  saveKeys(DEFAULT_KEYS.slice());toast('已恢复默认密钥');
+});
+$('#resetKeysBtn').addEventListener('click',function(){saveKeys(DEFAULT_KEYS.slice());toast('已恢复默认密钥');});
+$('#expandSwitch').addEventListener('click',function(){SETTINGS.expand=!SETTINGS.expand;this.classList.toggle('on',SETTINGS.expand);});
+$('#translateSwitch').addEventListener('click',function(){SETTINGS.translate=!SETTINGS.translate;this.classList.toggle('on',SETTINGS.translate);});
+$('#imgSizeSelect').addEventListener('change',function(){SETTINGS.imgSize=this.value;});
+$('#imgModelSelect').addEventListener('change',function(){SETTINGS.imgModel=this.value;});
+$('#voiceModeSelect').addEventListener('change',function(){
+  SETTINGS.voiceMode=this.value;
+  if(this.value==='off'){SETTINGS.voiceOn=false;stopSpeak();}
+  if(this.value!=='off')SETTINGS.voiceOn=true;
+  updateVoiceIcon();
+});
+$('#systemVoiceSelect').addEventListener('change',function(){SETTINGS.systemVoiceURI=this.value;});
+$('#testVoiceBtn').addEventListener('click',function(){
+  const old=SETTINGS.voiceOn,mode=SETTINGS.voiceMode;
+  SETTINGS.voiceOn=true;
+  if(SETTINGS.voiceMode==='off')SETTINGS.voiceMode='system';
+  speak('你好呀，我是 Mrio，今天也陪着你～');
+  setTimeout(function(){SETTINGS.voiceOn=old;SETTINGS.voiceMode=mode;},6000);
+});
+$('#gazeSwitch').addEventListener('click',function(){SETTINGS.gaze=SETTINGS.gaze===false;this.classList.toggle('on',SETTINGS.gaze!==false);gaze.enabled=SETTINGS.gaze!==false;});
+$('#blinkSwitch').addEventListener('click',function(){SETTINGS.blink=SETTINGS.blink===false;this.classList.toggle('on',SETTINGS.blink!==false);if(mainAvatar)mainAvatar.idleAnimator.blinkEnabled=SETTINGS.blink!==false;});
+const act=function(n){if(mainAvatar&&mainAvatar.isReady)mainAvatar.applyPreset(n,.5);};
+$('#actGreet').onclick=function(){act('greet');};
+$('#actAkimbo').onclick=function(){act('akimbo');};
+$('#actNod').onclick=function(){act('nod');};
+$('#actShake').onclick=function(){act('shake');};
+$('#actThanks').onclick=function(){act('thanks');};
+$('#actStretch').onclick=function(){act('stretch');};
+const expr=function(n){if(mainAvatar&&mainAvatar.isReady)mainAvatar.setExpression(n);};
+$('#exprHappy').onclick=function(){expr('happy');};
+$('#exprShy').onclick=function(){expr('shy');};
+$('#exprSad').onclick=function(){expr('sad');};
+$('#exprAngry').onclick=function(){expr('angry');};
+$('#exprSurprised').onclick=function(){expr('surprised');};
+$('#exprNeutral').onclick=function(){expr('neutral');};
+$('#outfitDefault').onclick=function(){if(mainAvatar&&mainAvatar.isReady)mainAvatar.applyOutfit('default');};
+$('#outfitCasual').onclick=function(){if(mainAvatar&&mainAvatar.isReady)mainAvatar.applyOutfit('casual');};
+$('#outfitElegant').onclick=function(){if(mainAvatar&&mainAvatar.isReady)mainAvatar.applyOutfit('elegant');};
+$('#outfitCyber').onclick=function(){if(mainAvatar&&mainAvatar.isReady)mainAvatar.applyOutfit('cyber');};
+$('#outfitDark').onclick=function(){if(mainAvatar&&mainAvatar.isReady)mainAvatar.applyOutfit('dark');};
+$('#fileVrm').addEventListener('change',function(e){
+  const file=e.target.files[0];if(!file||!/\.(vrm|glb)$/i.test(file.name))return;
+  const url=URL.createObjectURL(file);
+  toast('正在加载模型…');
+  if(mainAvatar)mainAvatar.load(url).then(function(){toast('模型加载完成');URL.revokeObjectURL(url);closeModal();})
+    .catch(function(err){toast('加载失败：'+(err.message||'未知错误'));URL.revokeObjectURL(url);});
+});
+$('#saveBtn').addEventListener('click',function(){saveSettings();updateVoiceIcon();toast('已保存');closeModal();});
+$('#clearBtn').addEventListener('click',function(){
+  if(!confirm('确定清除全部缓存吗？所有对话和设置都会消失。'))return;
+  try{[S_CHATS,S_KEYS,S_THEME,S_SET,S_AVATAR].forEach(function(k){localStorage.removeItem(k);});}catch(e){}
+  location.reload();
+});
+$('#themeBtn2').addEventListener('click',function(){setTheme(!isDark());});
+
+/* ================= 启动 ================= */
+function boot(){
+  let saved=null;
+  try{saved=localStorage.getItem(S_THEME);}catch(e){}
+  let dark;
+  if(saved===null)dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  else dark=saved==='1';
+  setTheme(dark);
+  updateVoiceIcon();updateKeyCount();loadVoiceList();
+  if(SETTINGS.voiceMode!=='off')SETTINGS.voiceOn=true;
+  gaze.enabled=SETTINGS.gaze!==false;
+  if(!load())newChat();
+  else{renderChatList();renderMessages();}
+  autoGrow();
+}
+
+const clock=new THREE.Clock();
+function tick(){
+  requestAnimationFrame(tick);
+  const delta=Math.min(clock.getDelta(),.05);
+  const t=clock.elapsedTime;
+  const gd=gaze.update(delta);
+  if(mainAvatar&&mainAvatar.isReady)mainAvatar.updateAnimation(t,delta,gd);
+  if(ddzActive&&ddzBot&&ddzBot.isReady)ddzBot.updateAnimation(t,delta,gd);
+  renderer.render(scene,camera);
+}
+
+/* 启动界面交互 */
+let selectedModel='model1';
+let startupLocalFile=null;
+(function initStartup(){
+  const btns=$$('.model-btn');
+  btns.forEach(function(btn){
+    btn.addEventListener('click',function(){
+      btns.forEach(function(b){b.classList.remove('is-active');});
+      btn.classList.add('is-active');
+      selectedModel=btn.dataset.model;
+      startupLocalFile=null;
+      $('#startupFileName').textContent='';
+    });
+  });
+  $('#startupFile').addEventListener('change',function(e){
+    const file=e.target.files[0];
+    if(!file)return;
+    if(!/\.(vrm|glb)$/i.test(file.name)){toast('请选择 .vrm 或 .glb 文件');return;}
+    startupLocalFile=file;
+    btns.forEach(function(b){b.classList.remove('is-active');});
+    $('#startupFileName').textContent='已选择：'+file.name;
+  });
+  $('#btnStart').addEventListener('click',function(){
+    const name=$('#nameInput').value.trim()||'Mrio';
+    CHAT_NAME=name;
+    try{localStorage.setItem(S_AVATAR,JSON.stringify({name:name,model:selectedModel}));}catch(e){}
+    $('#btnStart').disabled=true;
+    $('#startupStatus').textContent='正在唤醒 '+name+'…';
+    $('#startupOverlay').classList.add('is-hidden');
+    const url=startupLocalFile?URL.createObjectURL(startupLocalFile):((PRESET_MODELS[selectedModel]&&PRESET_MODELS[selectedModel].url)||PRESET_MODELS.model1.url);
+    mainAvatar=new Avatar(scene,new THREE.Vector3(0,0,0));
+    mainAvatar.load(url).then(function(){
+      if(startupLocalFile)URL.revokeObjectURL(url);
+      if(SETTINGS.blink===false)mainAvatar.idleAnimator.blinkEnabled=false;
+    }).catch(function(e){
+      console.warn('虚拟人加载失败',e);
+      toast('虚拟人模型加载失败，可用设置里的「导入模型」手动加载');
+    }).then(function(){
+      document.getElementById('topTitle').textContent=name;
+      document.getElementById('input').placeholder='给 '+name+' 发消息…';
+      $('#btnStart').disabled=false;
+      $('#startupStatus').textContent='';
+      layoutCamera();
+      if(!load())newChat();
+      else{renderChatList();renderMessages();}
+      autoGrow();
+    });
+  });
+  $('#nameInput').addEventListener('keydown',function(e){if(e.key==='Enter')$('#btnStart').click();});
+})();
+
+boot();
+tick();
+
+console.log('%c Mrio ','background:#0d0d0d;color:#fff;padding:3px 10px;border-radius:6px;font-weight:600;','已启动 ♥ 虚拟人 + 斗地主');
+</script>
+</body>
+</html>
